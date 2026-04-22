@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html x-data="themeHandler()" x-init="init()">
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -16,6 +16,8 @@
     </head>
     <body class="font-sans bg-[--color-background] antialiased">
 
+        <x-setting/>
+
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[--color-background]">
             <div>
                 <a href="/">
@@ -27,5 +29,6 @@
                 {{ $slot }}
             </div>
         </div>
+
     </body>
 </html>
