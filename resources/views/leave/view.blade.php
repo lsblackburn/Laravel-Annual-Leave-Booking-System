@@ -21,13 +21,13 @@
 
                         <div class="mt-5">
                             <x-input-label for="start_date" :value="__('Start Date*')" />
-                            <x-text-input id="start_date" class="block mt-1 w-full" type="date" name="start_date" :value="old('start_date')" required autofocus />
+                            <x-text-input id="start_date" class="block mt-1 w-full" type="text" name="start_date" :value="old('start_date')" required autofocus />
                             <x-input-error :messages="$errors->get('start_date')" class="mt-2" />
                         </div>
                         
                         <div class="mt-5">
                             <x-input-label for="end_date" :value="__('End Date*')" />
-                            <x-text-input id="end_date" class="block mt-1 w-full" type="date" name="end_date" :value="old('end_date')" required autofocus />
+                            <x-text-input id="end_date" class="block mt-1 w-full" type="text" name="end_date" :value="old('end_date')" required autofocus />
                             <x-input-error :messages="$errors->get('end_date')" class="mt-2" />
                         </div>
 
