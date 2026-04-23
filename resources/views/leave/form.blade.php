@@ -33,7 +33,8 @@
 
                         <div class="block mt-5">
                             <label for="is_half_day" class="inline-flex items-center">
-                                <input id="is_half_day" type="checkbox" class="rounded bg-[--color-background] border-[--color-border] text-[--color-primary] shadow-sm focus:ring-[--color-primary]" name="is_half_day">
+                                <input type="hidden" name="is_half_day" value="0">
+                                <input id="is_half_day" value="1" type="checkbox" class="rounded bg-[--color-background] border-[--color-border] text-[--color-primary] shadow-sm focus:ring-[--color-primary]" name="is_half_day">
                                 <span class="ms-2 text-sm text-[--color-subtletext]">{{ __('Is this a half-day leave?') }}</span>
                             </label>
                         </div>

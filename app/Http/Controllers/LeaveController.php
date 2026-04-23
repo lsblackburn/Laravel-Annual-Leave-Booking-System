@@ -21,6 +21,7 @@ class LeaveController extends Controller
 
     public function create(Request $request)
     {
+
         $validated = $request->validate([
             'start_date' => 'required|date_format:d-m-Y',
             'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
