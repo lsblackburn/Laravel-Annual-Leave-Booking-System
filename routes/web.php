@@ -17,7 +17,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/leave', [LeaveController::class, 'view'])->name('leave.view');
+    Route::get('/leave/view', [LeaveController::class, 'view'])->name('leave.view');
+    Route::get('/leave/form', [LeaveController::class, 'form'])->name('leave.form');
     Route::post('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
 });
 
