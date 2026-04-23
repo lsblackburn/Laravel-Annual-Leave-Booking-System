@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+    font-family: "gotham", sans-serif;
+}
 
 :root {
     --color-background: #F6F4F5;
