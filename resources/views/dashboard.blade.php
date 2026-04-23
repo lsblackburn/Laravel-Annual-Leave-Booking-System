@@ -5,7 +5,4 @@
         </h2>
     </x-slot>
 
-    <x-form-feedback />
-
-
 </x-app-layout>

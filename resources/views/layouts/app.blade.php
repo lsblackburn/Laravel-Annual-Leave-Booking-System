@@ -31,6 +31,9 @@
 
             <!-- Page Content -->
             <main>
+
+                <x-form-feedback />
+
                 {{ $slot }}
             </main>
         </div>
