@@ -22,13 +22,15 @@ class LeaveController extends Controller
     public function create(Request $request)
     {
         $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => 'required|date_format:d-m-Y',
+            'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
             'is_half_day' => 'nullable|boolean',
             'reason' => 'required|string|max:255',
             'additional_info' => 'nullable|string|max:255',
         ]);
 
+        $validated['start_date'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['start_date'])->format('Y-m-d');
+        $validated['end_date'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['end_date'])->format('Y-m-d');
         $validated['user_id'] = Auth::id();
         $validated['is_half_day'] = $request->boolean('is_half_day');
 
