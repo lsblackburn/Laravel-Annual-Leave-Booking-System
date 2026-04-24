@@ -10,11 +10,6 @@ use App\Models\User;
 class AdminRoutesController extends Controller
 {
 
-    public function dashboard()
-    {
-        return view('admin.dashboard');
-    }
-
     public function leaveRequests()
     {
         $leaveRequests = Leave::select('leaves.*', 'users.name as user_name')

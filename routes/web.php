@@ -24,7 +24,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [AdminRoutesController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/leave-requests', [AdminRoutesController::class, 'leaveRequests'])->name('admin.leave-requests');
     Route::get('/admin/users', [AdminRoutesController::class, 'users'])->name('admin.users');
 });
