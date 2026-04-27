@@ -64,7 +64,7 @@
                             <div class="py-1">
                                 <a href="{{ route('leave.view') }}"
                                 class="block px-4 py-2 text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
-                                    {{ __('View Leave') }}
+                                    {{ __('View Your Leave') }}
                                 </a>
 
                                 <a href="{{ route('leave.form') }}"
