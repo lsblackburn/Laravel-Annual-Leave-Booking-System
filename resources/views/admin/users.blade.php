@@ -35,7 +35,7 @@
                             </td>
 
                             <td class="px-6 py-4">
-                                {{ $user->role }}
+                                {{ \Illuminate\Support\Str::ucfirst($user->role) }}
                             </td>
 
                             <!-- Actions -->
