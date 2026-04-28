@@ -40,7 +40,37 @@
 
                             <!-- Actions -->
                             <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)]">
-                                No actions available
+                                @if (auth()->user()->id !== $user->id)
+                                    <a href="" class="text-blue-600 hover:underline">
+                                        Edit
+                                    </a>
+                                    <a href="" class="ml-4 text-red-600 hover:underline">
+                                        Delete
+                                    </a>
+                                    @if ($user->role !== 'admin')
+                                        <form action="{{ route('admin.users.promote', $user->id) }}" method="POST" class="ml-4 text-green-600 hover:underline">
+                                            @csrf
+                                            @method('POST')
+                                            <input type="hidden" name="user_id" value="{{ $user->id }}">
+                                            <button type="submit" class="ml-4 text-green-600 hover:underline">
+                                                Promote
+                                            </button>
+                                        </form>
+                                        @else
+                                        <form action="{{ route('admin.users.demote', $user->id) }}" method="POST" class="ml-4 text-green-600 hover:underline">
+                                            @csrf
+                                            @method('POST')
+                                            <input type="hidden" name="user_id" value="{{ $user->id }}">
+                                            <button type="submit" class="ml-4 text-green-600 hover:underline">
+                                                Demote
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400">
+                                        No actions available
+                                    </span>
+                                @endif
                             </td>
 
                         </tr>
