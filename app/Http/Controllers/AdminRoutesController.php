@@ -29,4 +29,12 @@ class AdminRoutesController extends Controller
         return view('admin.users', compact('users'));
     }
 
+
+    public function edit_user(User $user)
+    {
+        $user = User::findOrFail($user->id);
+
+        return view('admin.edit-user', compact('user'));
+    }
+
 }
