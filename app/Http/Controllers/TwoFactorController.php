@@ -112,8 +112,12 @@ class TwoFactorController extends Controller
 
         $user = Auth::user();
         $secret = session('2fa_secret');
-        $google2fa = new Google2FA();
 
+        if (! is_string($secret) || $secret === '') {
+            return redirect()->route('2fa.setup')->with('error', 'Your 2FA setup session expired. Please start again.');
+        }
+
+        $google2fa = new Google2FA();
 
         if ($google2fa->verifyKey($secret, $request->otp)) {
             $user->google2fa_secret = $secret;

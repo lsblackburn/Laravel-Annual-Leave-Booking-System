@@ -61,6 +61,18 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertNotSame($secret, DB::table('users')->whereKey($user->id)->value('google2fa_secret'));
     }
 
+    public function test_enabling_two_factor_requires_a_setup_secret_in_the_session(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('2fa.enable'), ['otp' => '123456'])
+            ->assertRedirect(route('2fa.setup'))
+            ->assertSessionHas('error', 'Your 2FA setup session expired. Please start again.');
+
+        $this->assertFalse($user->fresh()->hasTwoFactorEnabled());
+    }
+
     public function test_valid_otp_logs_in_user_after_two_factor_is_enabled(): void
     {
         $user = $this->createUserWithTwoFactorSecret();
