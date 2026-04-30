@@ -69,20 +69,23 @@ class LeaveController extends Controller
     public function calendar_events(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'start' => ['nullable', 'date', 'before_or_equal:end'],
-            'end'   => ['nullable', 'date', 'after_or_equal:start'],
+            'start' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}(?:$|[T\s])/', 'before_or_equal:end'],
+            'end'   => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}(?:$|[T\s])/', 'after_or_equal:start'],
         ]);
+
+        $startDate = $this->calendarRequestDate($validated['start'] ?? null);
+        $endDate = $this->calendarRequestDate($validated['end'] ?? null);
 
         $query = Leave::with('user')
             ->where('status', 'approved');
 
         // Only return events that overlap with the requested date range in the calendar
-        if (! empty($validated['start'])) {
-            $query->where('end_date', '>=', Carbon::parse($validated['start'])->toDateString());
+        if ($startDate !== null) {
+            $query->where('end_date', '>=', $startDate);
         }
 
-        if (! empty($validated['end'])) {
-            $query->where('start_date', '<', Carbon::parse($validated['end'])->toDateString());
+        if ($endDate !== null) {
+            $query->where('start_date', '<', $endDate);
         }
 
         $leaves = $query->get();
@@ -99,6 +102,15 @@ class LeaveController extends Controller
         });
 
         return response()->json($events);
+    }
+
+    private function calendarRequestDate(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return substr($value, 0, 10);
     }
 
 }

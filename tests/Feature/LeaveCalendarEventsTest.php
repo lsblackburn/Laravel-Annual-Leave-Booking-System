@@ -55,6 +55,27 @@ class LeaveCalendarEventsTest extends TestCase
         $response->assertJsonValidationErrors(['start']);
     }
 
+    public function test_calendar_events_preserve_client_date_boundaries_with_timezone_offsets(): void
+    {
+        $viewer = User::factory()->create();
+        $employee = User::factory()->create(['name' => 'Alex Example']);
+
+        $this->createLeave($employee, '2026-03-31', '2026-03-31');
+        $this->createLeave($employee, '2026-04-01', '2026-04-01');
+        $this->createLeave($employee, '2026-04-30', '2026-04-30');
+
+        $response = $this->actingAs($viewer)->getJson(route('leave-requests.calendar-events', [
+            'start' => '2026-04-01T00:00:00+01:00',
+            'end' => '2026-04-30T00:00:00+01:00',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonCount(1);
+        $response->assertJsonFragment(['start' => '2026-04-01']);
+        $response->assertJsonMissing(['start' => '2026-03-31']);
+        $response->assertJsonMissing(['start' => '2026-04-30']);
+    }
+
     private function createLeave(User $user, string $startDate, string $endDate, string $status = 'approved'): Leave
     {
         $leave = Leave::create([
