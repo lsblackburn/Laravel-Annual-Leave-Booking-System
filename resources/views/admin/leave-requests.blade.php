@@ -25,48 +25,70 @@
                 <!-- Body -->
                 <tbody class="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
 
-                    @foreach ($leaveRequests as $request)
-                        <tr class="hover:bg-[var(--color-surface-alt)] transition">
-                            
-                            <td class="px-6 py-4 font-medium">
-                                {{ $request->user_name }}
+                    @if ($leaveRequests->isEmpty()) 
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-sm text-[var(--color-subtletext)]">
+                                No leave requests found.
                             </td>
-
-                            <td class="px-6 py-4">
-                                {{ $request->is_half_day ? 'Half Day' : 'Full Day(s)' }}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{ \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') }}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{ \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') }}
-                            </td>
-
-                            <!-- Status badge -->
-                            <td class="px-6 py-4">
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'bg-amber-100 text-amber-700',
-                                        'approved' => 'bg-green-100 text-green-700',
-                                        'rejected' => 'bg-red-100 text-red-700',
-                                    ];
-                                @endphp
-
-                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
-                                    {{ $statusColors[strtolower($request->status)] ?? 'bg-gray-100 text-gray-600' }}">
-                                    {{ ucfirst($request->status) }}
-                                </span>
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)]">
-                                No actions available
-                            </td>
-
                         </tr>
-                    @endforeach
+                    @else
+                        @foreach ($leaveRequests as $request)
+                            <tr class="hover:bg-[var(--color-surface-alt)] transition">
+                                
+                                <td class="px-6 py-4 font-medium">
+                                    {{ $request->user_name }}
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    {{ $request->is_half_day ? 'Half Day' : 'Full Day(s)' }}
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    {{ \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') }}
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    {{ \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') }}
+                                </td>
+
+                                <!-- Status badge -->
+                                <td class="px-6 py-4">
+                                    @php
+                                        $statusColors = [
+                                            'pending' => 'bg-amber-100 text-amber-700',
+                                            'approved' => 'bg-green-100 text-green-700',
+                                            'rejected' => 'bg-red-100 text-red-700',
+                                        ];
+                                    @endphp
+
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
+                                        {{ $statusColors[strtolower($request->status)] ?? 'bg-gray-100 text-gray-600' }}">
+                                        {{ ucfirst($request->status) }}
+                                    </span>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
+                                    
+                                    <form action="{{ route('admin.leave-requests.response', $request->id) }}" method="POST">
+                                        @csrf
+                                        @method('POST')
+                                        <input type="hidden" name="user_id" value="{{ $request->user_id }}">
+                                        <button type="submit" name="response" value="approved" class="inline-flex items-center px-4 py-2 bg-[--color-success] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-success-text] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                            Approve
+                                        </button>
+
+                                        <button type="submit" name="response" value="rejected" class="inline-flex items-center px-4 py-2 bg-[--color-danger] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-danger-text] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                            Decline
+                                        </button>
+                                    </form>
+
+                                </td>
+
+                            </tr>
+                        @endforeach
+
+                    @endif
 
                 </tbody>
             </table>
