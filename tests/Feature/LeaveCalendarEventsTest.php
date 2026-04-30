@@ -42,6 +42,19 @@ class LeaveCalendarEventsTest extends TestCase
         $response->assertJsonMissing(['start' => '2026-04-15']);
     }
 
+    public function test_calendar_events_reject_invalid_range_dates(): void
+    {
+        $viewer = User::factory()->create();
+
+        $response = $this->actingAs($viewer)->getJson(route('leave-requests.calendar-events', [
+            'start' => 'not-a-date',
+            'end' => '2026-04-30T00:00:00+01:00',
+        ]));
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['start']);
+    }
+
     private function createLeave(User $user, string $startDate, string $endDate, string $status = 'approved'): Leave
     {
         $leave = Leave::create([

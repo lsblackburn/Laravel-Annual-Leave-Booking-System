@@ -68,16 +68,21 @@ class LeaveController extends Controller
 
     public function calendar_events(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'start' => ['nullable', 'date', 'before_or_equal:end'],
+            'end'   => ['nullable', 'date', 'after_or_equal:start'],
+        ]);
+
         $query = Leave::with('user')
             ->where('status', 'approved');
 
-
         // Only return events that overlap with the requested date range in the calendar
-        if ($request->filled('start')) {
-            $query->where('end_date', '>=', Carbon::parse($request->query('start'))->toDateString());
+        if (! empty($validated['start'])) {
+            $query->where('end_date', '>=', Carbon::parse($validated['start'])->toDateString());
         }
-        if ($request->filled('end')) {
-            $query->where('start_date', '<', Carbon::parse($request->query('end'))->toDateString());
+
+        if (! empty($validated['end'])) {
+            $query->where('start_date', '<', Carbon::parse($validated['end'])->toDateString());
         }
 
         $leaves = $query->get();
