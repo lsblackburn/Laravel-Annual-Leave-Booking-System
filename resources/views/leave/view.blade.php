@@ -26,7 +26,7 @@
 
                      @if ($leaveRequests->isEmpty()) 
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-sm text-[var(--color-subtletext)]">
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-[var(--color-subtletext)]">
                                 No leave requests found.
                             </td>
                         </tr>
