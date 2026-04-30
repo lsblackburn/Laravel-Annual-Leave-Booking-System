@@ -27,6 +27,25 @@ class TwoFactorAuthenticationTest extends TestCase
         $response->assertSessionHas('2fa:user_id', $user->id);
     }
 
+    public function test_two_factor_password_handoff_does_not_rotate_existing_remember_token(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+        $user->setRememberToken('existing-remember-token');
+        $user->save();
+
+        $response = $this->post(route('login'), [
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => 'on',
+        ]);
+
+        $this->assertGuest();
+        $response->assertRedirect(route('2fa.verify'));
+        $response->assertSessionHas('2fa:user_id', $user->id);
+        $response->assertSessionHas('2fa:remember', true);
+        $this->assertSame('existing-remember-token', $user->fresh()->getRememberToken());
+    }
+
     public function test_failed_otp_submissions_are_rate_limited(): void
     {
         $user = $this->createUserWithTwoFactorSecret();

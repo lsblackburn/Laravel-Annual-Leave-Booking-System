@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         // If user has 2FA enabled, require OTP challenge
         if ($user->hasTwoFactorEnabled()) {
-            Auth::guard('web')->logout();
+            Auth::guard('web')->logoutCurrentDevice();
 
             // Park the user ID until they complete 2FA
             $request->session()->put('2fa:user_id', $user->id);
