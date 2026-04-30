@@ -61,8 +61,26 @@
                             </td>
 
                             <!-- Actions -->
-                            <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)]">
-                                No actions available
+                            <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
+                                
+                                <form action="{{ route('admin.leave-requests.accept', $request->id) }}" method="POST">
+                                    @csrf
+                                    @method('POST')
+                                    <input type="hidden" name="user_id" value="{{ $request->user_id }}">
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[--color-success] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-success-text] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                        Accept
+                                    </button>
+                                </form>
+
+                                <form action="{{ route('admin.leave-requests.decline', $request->id) }}" method="POST">
+                                    @csrf
+                                    @method('POST')
+                                    <input type="hidden" name="user_id" value="">
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[--color-danger] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-danger-text] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                        Decline
+                                    </button>
+                                </form>
+
                             </td>
 
                         </tr>
