@@ -122,6 +122,7 @@ class TwoFactorController extends Controller
         if ($google2fa->verifyKey($secret, $request->otp)) {
             $user->google2fa_secret = $secret;
             $user->save();
+            $request->session()->forget('2fa_secret');
 
             return redirect()->route('dashboard')->with('success', '2FA enabled successfully!');
         }

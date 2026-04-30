@@ -74,7 +74,8 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->actingAs($user)
             ->withSession(['2fa_secret' => $secret])
             ->post(route('2fa.enable'), ['otp' => $google2fa->getCurrentOtp($secret)])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionMissing('2fa_secret');
 
         $this->assertSame($secret, $user->fresh()->google2fa_secret);
         $this->assertNotSame($secret, DB::table('users')->whereKey($user->id)->value('google2fa_secret'));
