@@ -7,7 +7,7 @@
 
                 <h2 class="text-[--color-text] text-2xl font-bold mb-4">Calendar Preview</h2>
 
-                <x-primary-link href="{{ route('dashboard') }}">
+                <x-primary-link href="{{ route('calendar') }}">
                     View Full Calendar
                 </x-primary-link>
 

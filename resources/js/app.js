@@ -68,3 +68,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.render();
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    if (!calendarEl) return;
+
+    const calendar = new Calendar(calendarEl, {
+        plugins: [dayGridPlugin],
+        height: 'auto',
+        firstDay: 1,
+
+        events: '/leave-requests/calendar-events',
+
+        eventDisplay: 'block',
+
+    });
+
+    calendar.render();
+});
