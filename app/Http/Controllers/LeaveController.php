@@ -53,6 +53,11 @@ class LeaveController extends Controller
         }
 
         $leaveRequest = Leave::findOrFail($id);
+
+        if ($leaveRequest->status !== 'pending') {
+            return redirect()->route('admin.leave-requests')->with('error', 'This leave request has already been processed.');
+        }
+
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
 
