@@ -85,7 +85,7 @@
 
                             <x-input-label for="otp" :value="__('One Time Password (OTP)')" />
 
-                            <x-text-input id="otp" type="number" name="otp" class="mt-1 block w-full" :value="$secret" required />
+                            <x-text-input id="otp" type="text" name="otp" class="mt-1 block w-full" :value="$secret" required />
 
                         </div>
 

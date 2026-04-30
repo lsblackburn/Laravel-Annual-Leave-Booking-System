@@ -24,7 +24,7 @@
         <!-- Email Address -->
         <div>
             <x-input-label for="one_time_password" :value="__('2FA Code')" />
-            <x-text-input id="one_time_password" class="block mt-1 w-full" type="number" name="one_time_password" required autofocus autocomplete="username" />
+            <x-text-input id="one_time_password" class="block mt-1 w-full" type="text" name="one_time_password" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('one_time_password')" class="mt-2" />
         </div>
  
