@@ -17,6 +17,18 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_login_screen_clears_pending_two_factor_challenge_state(): void
+    {
+        $response = $this->withSession([
+            '2fa:user_id' => 123,
+            '2fa:remember' => true,
+        ])->get('/login');
+
+        $response->assertStatus(200);
+        $response->assertSessionMissing('2fa:user_id');
+        $response->assertSessionMissing('2fa:remember');
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
@@ -28,6 +40,25 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_non_two_factor_login_clears_stale_pending_two_factor_challenge_state(): void
+    {
+        $user = User::factory()->create();
+        $staleTwoFactorUser = User::factory()->create();
+
+        $response = $this->withSession([
+            '2fa:user_id' => $staleTwoFactorUser->id,
+            '2fa:remember' => true,
+        ])->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertSessionMissing('2fa:user_id');
+        $response->assertSessionMissing('2fa:remember');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

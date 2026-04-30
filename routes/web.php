@@ -6,13 +6,23 @@ use App\Http\Controllers\AdminRoutesController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::middleware(['auth'])->group(function () {
+// 2FA challenge during login (user not yet authenticated)
+Route::get('/2fa/verify', [TwoFactorController::class, 'show_verify'])->name('2fa.verify');
+Route::post('/2fa', [TwoFactorController::class, 'verify'])->name('2fa');
+
+Route::middleware(['auth', '2fa.remember'])->group(function () {
+
+    Route::get('/2fa/setup', [TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::get('/2fa/disable', [TwoFactorController::class, 'show_disable_form'])->name('2fa.disable.form');
+    Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -33,7 +43,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
     Route::get('/admin/leave-requests', [AdminRoutesController::class, 'leave_requests'])->name('admin.leave-requests');
     Route::get('/admin/users', [AdminRoutesController::class, 'users'])->name('admin.users');
     Route::get('/admin/users/edit/{user}', [AdminRoutesController::class, 'edit_user'])->name('admin.users.edit');
