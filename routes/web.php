@@ -16,7 +16,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', function () {
         return view('dashboard');
-    })->name('dashboard');
+    })->middleware(['verified'])->name('dashboard');
 
     Route::get('/calendar', function () {
         return view('calendar');
