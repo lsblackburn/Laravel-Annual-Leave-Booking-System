@@ -2,6 +2,7 @@ import AirDatepicker from 'air-datepicker';
 import 'air-datepicker/air-datepicker.css';
 import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 
 import Alpine from 'alpinejs';
 
@@ -43,11 +44,27 @@ new AirDatepicker('#end_date', {
     },
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('dashboard-calendar');
 
-    var calendar = new Calendar(calendarEl, {
-        plugins: [ dayGridPlugin ]
+    if (!calendarEl) return;
+
+    const calendar = new Calendar(calendarEl, {
+        plugins: [dayGridPlugin],
+
+        initialView: 'dayGridWeek',
+        height: 'auto',
+        headerToolbar: false,
+        firstDay: 1,
+
+        events: '/leave-requests/calendar-events',
+
+        dayMaxEvents: 2,
+        eventDisplay: 'block',
+
+        editable: false,
+        selectable: false,
+        navLinks: false,
     });
 
     calendar.render();
