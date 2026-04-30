@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
@@ -41,13 +45,21 @@ class TwoFactorController extends Controller
             return redirect()->route('login')->with('error', 'Two-factor authentication is not configured for this account.');
         }
 
+        $this->ensureOtpIsNotRateLimited($request, $user);
+
         $google2fa = new Google2FA();
 
         $otpValid = $google2fa->verifyKey($user->google2fa_secret, $request->input('one_time_password'));
 
         if (! $otpValid) {
-            return back()->with('error', 'Invalid OTP. Please try again.');
+            RateLimiter::hit($this->otpThrottleKey($request, $user));
+
+            return back()->withErrors([
+                'one_time_password' => 'Invalid OTP. Please try again.',
+            ]);
         }
+
+        RateLimiter::clear($this->otpThrottleKey($request, $user));
 
         $remember = (bool) $request->session()->get('2fa:remember', false);
 
@@ -150,6 +162,32 @@ class TwoFactorController extends Controller
 
 
         return redirect()->route('dashboard')->with('success', '2FA has been disabled.');
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function ensureOtpIsNotRateLimited(Request $request, User $user): void
+    {
+        if (! RateLimiter::tooManyAttempts($this->otpThrottleKey($request, $user), 5)) {
+            return;
+        }
+
+        event(new Lockout($request));
+
+        $seconds = RateLimiter::availableIn($this->otpThrottleKey($request, $user));
+
+        throw ValidationException::withMessages([
+            'one_time_password' => trans('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]),
+        ]);
+    }
+
+    private function otpThrottleKey(Request $request, User $user): string
+    {
+        return Str::transliterate('2fa|'.$user->id.'|'.$request->ip());
     }
 
 }
