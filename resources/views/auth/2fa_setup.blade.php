@@ -1,85 +1,103 @@
-@extends('layouts.cms')
+<x-app-layout>
 
 @section('content')
 
-<section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mt-25 mb-10 md:mt-30 md:mb-12">
+<x-slot name="header">
+    <h2 class="font-semibold text-xl text-[--color-text]  leading-tight">
+        {{ __('Two Factor Authentication Setup') }}
+    </h2>
+</x-slot>
 
-    <h1 class="text-3xl md:text-4xl font-bold m-0 text-center text-[var(--color-text)]">Enable Two-Factor Authentication</h1>
+<div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
+        <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="w-full">
+                <section>
+                    <h2 class="text-lg font-medium text-[--color-text]">
+                        {{ __('Step 1: Download app') }}
+                    </h2>
 
-</section>
-
-<section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mb-10 md:mb-12">
-
-    <h2 class="text-xl md:text-2xl mb-1 text-[var(--color-subtletext)]">Step 1</h2>
-
-    <p class="text-xl md:text-2xl font-bold mb-5 text-[var(--color-text)]">Download app</p>
-
-    <p class="text-xs md:text-base">Download your preferred mobile authenticator app (e.g., Google Authenticator).</p>
-
-</section>
-
-<section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mb-10 md:mb-12">
-
-    <h2 class="text-xl md:text-2xl mb-1 text-[var(--color-subtletext)]">Step 2</h2>
-
-    <p class="text-xl md:text-2xl font-bold mb-5 text-[var(--color-text)]">Scan the QR Code</p>
-
-    <div class="grid grid-cols-1 gap-10 md:gap-0 md:grid-cols-2">
-
-        <div>
-
-            <p class="mb-2 text-xs md:text-base">Scan the QR code using a mobile authentication app to genrate a verification code.</p>
-
-            <p class="mb-8 text-xs md:text-base">Set up your two factor authentication by scanning the QR code.</p>
-            
-            <p class="mb-8 text-xs md:text-base">Alternatively, you can use the code <strong>{{ $secret }}</strong> within the authenticator.</p>
-
-            <p class="text-xs md:text-base">Ensure you submit the current one because it refreshes every 30 seconds.</p>
-
+                    <p class="mt-1 text-sm text-[--color-subtletext]">
+                        {{ __("Download your preferred mobile authenticator app (e.g., Google Authenticator).") }}
+                    </p>
+                </section>
+            </div>
         </div>
-
-        <div class="flex justify-center">
-            <img class="w-6/12" src="data:image/svg+xml;base64,{{ $qrCodeSvg }}" alt="QR Code">
-        </div>
-
     </div>
 
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
+        <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="w-full">
+                <section>
 
-</section>
+                    <h2 class="text-lg font-medium text-[--color-text]">
+                        {{ __('Step 2: Scan QR Code') }}
+                    </h2>
 
-<section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mb-10 md:mb-12">
+                    <div class="grid grid-cols-1 gap-10 md:gap-0 md:grid-cols-2">
 
-    <h2 class="text-xl md:text-2xl mb-1 text-[var(--color-subtletext)]">Step 3</h2>
+                        <div>
 
-    <p class="text-xl md:text-2xl font-bold mb-5 text-[var(--color-text)]">Enter the verification code</p>
+                            <p class="mt-1 text-sm text-[--color-subtletext]">
+                                {{ __("Scan the QR code using a mobile authentication app to genrate a verification code.") }}
+                            </p>
 
+                            <p class="mt-1 text-sm text-[--color-subtletext]">
+                                {{ __("Set up your two factor authentication by scanning the QR code.") }}
+                            </p>
 
-    <form method="POST" action="{{ route('2fa.enable') }}" class="mt-4">
-        @csrf
+                            <p class="mt-1 text-sm text-[--color-subtletext]">
+                                {{ __("Alternatively, you can use the following code within the authenticator:") }}
+                            </p>
 
-        <div class="mb-8 relative">
+                            <p class="mt-1 text-sm font-bold text-[--color-text]">{{ $secret }}</p>
 
-            <label for="otp" class="text-xs md:text-base">Enter OTP from app:</label>
+                            <p class="mt-1 text-sm text-[--color-subtletext]">
+                                {{ __("Ensure you submit the current one because it refreshes every 30 seconds.") }}
+                            </p>
 
-            <input type="number" name="otp" id="otp" class="w-full bg-[var(--color-background)] mt-2 py-3 px-4 rounded-xl" required>
+                        </div>
 
+                        <div class="flex justify-center">
+                            <img class="w-6/12" src="data:image/svg+xml;base64,{{ $qrCodeSvg }}" alt="QR Code">
+                        </div>
+
+                    </div>
+
+                </section>
+            </div>
         </div>
+    </div>
 
-        @error('otp')
-            <span role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
+        <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="max-w-xl">
+                <section>
 
-        @if (session('error') && !$errors->has('otp'))
-            <span role="alert" style="display: block;">
-                <strong>{{ session('error') }}</strong>
-            </span>
-        @endif
-        
-        <button class="w-full bg-[var(--color-background)] text-[var(--color-button-text)] py-3 px-4 rounded-full shadow-colored-hover cursor-pointer" type="submit">Enable 2FA</button>
-    </form>
+                    <h2 class="text-lg font-medium text-[--color-text]">
+                        {{ __('Step 3: Enter Verification Code') }}
+                    </h2>
 
-</section>
+                    <form method="POST" action="{{ route('2fa.enable') }}" class="mt-4">
+                        @csrf
 
-@endsection
+                        <div class="mb-8 relative">
+
+                            <x-input-label for="otp" :value="__('One Time Password (OTP)')" />
+
+                            <x-text-input id="otp" type="number" name="otp" class="mt-1 block w-full" :value="$secret" required />
+
+                        </div>
+
+                        <x-primary-button type="submit">
+                            {{ __('Enable 2FA') }}
+                        </x-primary-button>
+                    </form>
+
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+</x-app-layout>

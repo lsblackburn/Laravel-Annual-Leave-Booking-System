@@ -9,6 +9,7 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use PragmaRX\Google2FA\Google2FA;
 
 class TwoFactorController extends Controller
 {
@@ -21,7 +22,7 @@ class TwoFactorController extends Controller
             ]);
         }
 
-        return view('cms.auth.2fa_verify');
+        return view('auth.2fa_verify');
     }
 
     public function verify(Request $request)
@@ -46,7 +47,7 @@ class TwoFactorController extends Controller
             ]);
         }
 
-        $google2fa = app('pragmarx.google2fa');
+        $google2fa = new Google2FA();
 
         $otpValid = $google2fa->verifyKey($user->google2fa_secret, $request->input('one_time_password'));
 
@@ -64,17 +65,17 @@ class TwoFactorController extends Controller
         $request->session()->forget(['2fa:user_id', '2fa:remember']);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('cms.dashboard'));
+        return redirect()->intended(route('dashboard'));
     }
 
     public function setup()
     {
-        $google2fa = app('pragmarx.google2fa');
+        $google2fa = new Google2FA();
 
         $user = Auth::user();
 
         if ($user->google2fa_secret) {
-            return redirect()->route('home')->with('popup', '2FA already enabled.');
+            return redirect()->route('dashboard')->with('popup', '2FA already enabled.');
         }
 
         $secret = $google2fa->generateSecretKey();
@@ -96,7 +97,7 @@ class TwoFactorController extends Controller
 
         session(['2fa_secret' => $secret]);
 
-        return view('cms.auth.2fa_setup', compact('qrCodeSvg', 'secret'));
+        return view('auth.2fa_setup', compact('qrCodeSvg', 'secret'));
     }
 
     public function enable(Request $request)
@@ -107,18 +108,16 @@ class TwoFactorController extends Controller
 
         $user = Auth::user();
         $secret = session('2fa_secret');
-        $google2fa = app('pragmarx.google2fa');
+        $google2fa = new Google2FA();
 
         if ($google2fa->verifyKey($secret, $request->otp)) {
             $user->google2fa_secret = $secret;
             $user->save();
 
-            return redirect()->route('cms.dashboard')->with('popup', '2FA enabled successfully!');
+            return redirect()->route('dashboard')->with('success', '2FA enabled successfully!');
         }
 
-        return back()->withErrors([
-            'popup' => 'Invalid OTP, please try again.',
-        ]);
+        return back()->with('error', 'Invalid OTP. Please try again.');
     }
 
     public function showDisableForm()
@@ -126,10 +125,10 @@ class TwoFactorController extends Controller
         $user = Auth::user();
 
         if (!$user->google2fa_secret) {
-            return redirect()->route('cms.dashboard')->with('popup', '2FA is not enabled.');
+            return redirect()->route('dashboard')->with('error', '2FA is not enabled.');
         }
 
-        return view('cms.auth.2fa_disable');
+        return view('auth.2fa_disable');
     }
 
     public function disable(Request $request)
@@ -141,15 +140,15 @@ class TwoFactorController extends Controller
         $user = Auth::user();
 
         if (!$user->google2fa_secret) {
-            return redirect()->route('cms.dashboard')->with('popup', '2FA is not enabled.');
+            return redirect()->route('dashboard')->with('error', '2FA is not enabled.');
         }
 
-        $google2fa = app('pragmarx.google2fa');
+        $google2fa = new Google2FA();
 
         $otpValid = $google2fa->verifyKey($user->google2fa_secret, $request->input('otp'));
 
         if (!$otpValid) {
-            return back()->with('popup', 'Invalid OTP. Please try again.');
+            return back()->with('error', 'Invalid OTP. Please try again.');
         }
 
         $user->google2fa_secret = null;
@@ -158,7 +157,7 @@ class TwoFactorController extends Controller
         session()->forget('google2fa_passed');
 
 
-        return redirect()->route('cms.dashboard')->with('popup', '2FA has been disabled.');
+        return redirect()->route('dashboard')->with('success', '2FA has been disabled.');
     }
 
 }

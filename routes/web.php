@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminRoutesController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
