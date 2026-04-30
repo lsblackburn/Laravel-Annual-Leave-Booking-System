@@ -17,9 +17,7 @@ class TwoFactorController extends Controller
     public function show_verify(Request $request)
     {
         if (! $request->session()->has('2fa:user_id')) {
-            return redirect()->route('login')->withErrors([
-                'popup' => 'Your login session expired. Please sign in again.',
-            ]);
+            return redirect()->route('login')->with('error', 'Your login session expired. Please sign in again.');
         }
 
         return view('auth.2fa_verify');
@@ -34,17 +32,13 @@ class TwoFactorController extends Controller
         $userId = $request->session()->get('2fa:user_id');
 
         if (!$userId) {
-            return redirect()->route('login')->withErrors([
-                'popup' => 'Your login session expired. Please sign in again.',
-            ]);
+            return redirect()->route('login')->with('error', 'Your login session expired. Please sign in again.');
         }
 
         $user = User::find($userId);
 
         if (!$user || empty($user->google2fa_secret)) {
-            return redirect()->route('login')->withErrors([
-                'popup' => 'Two-factor authentication is not configured for this account.',
-            ]);
+            return redirect()->route('login')->with('error', 'Two-factor authentication is not configured for this account.');
         }
 
         $google2fa = new Google2FA();
@@ -52,9 +46,7 @@ class TwoFactorController extends Controller
         $otpValid = $google2fa->verifyKey($user->google2fa_secret, $request->input('one_time_password'));
 
         if (! $otpValid) {
-            return back()->withErrors([
-                'popup' => 'Invalid OTP. Please try again.',
-            ]);
+            return back()->with('error', 'Invalid OTP. Please try again.');
         }
 
         $remember = (bool) $request->session()->get('2fa:remember', false);
@@ -75,7 +67,7 @@ class TwoFactorController extends Controller
         $user = Auth::user();
 
         if ($user->google2fa_secret) {
-            return redirect()->route('dashboard')->with('popup', '2FA already enabled.');
+            return redirect()->route('dashboard')->with('error', '2FA already enabled.');
         }
 
         $secret = $google2fa->generateSecretKey();
