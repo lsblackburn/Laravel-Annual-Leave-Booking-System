@@ -1,39 +1,67 @@
-@extends('layouts.cms')
+<x-app-layout>
 
 @section('content')
 
-    <section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mt-25 mb-10 md:mt-30 md:mb-12">
+<x-slot name="header">
+    <h2 class="font-semibold text-xl text-[--color-text]  leading-tight">
+        {{ __('Disable Two-Factor Authentication') }}
+    </h2>
+</x-slot>
 
-        <h1 class="text-3xl md:text-4xl font-bold m-0 text-center text-[var(--color-text)]">Disable Two-Factor Authentication</h1>
+<div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
+        <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="w-full">
+                <section>
+                    <h2 class="text-lg font-medium text-[--color-text]">
+                        {{ __('Please enter the OTP generated on your Authenticator App.') }}
+                    </h2>
 
-    </section>
+                    <p class="mt-1 text-sm text-[--color-subtletext]">
+                        {{ __("Ensure you submit the current one because it refreshes every 30 seconds.") }}
+                    </p>
 
-    <section class="container w-10/12 md:w-full mx-auto bg-[var(--color-card)] py-6 md:py-12 px-4 md:px-8 rounded-2xl mb-10 md:mb-12">
+                    <p class="mt-1 text-sm text-[--color-subtletext]">
+                        {{ __("Are you sure you want to disable 2FA?") }}
+                    </p>
 
-        <form method="POST" action="{{ route('2fa.disable') }}">
-            @csrf
-
-            <p class="mb-2">Please enter the <strong>OTP</strong> generated on your Authenticator App.</p>
-            
-            <p class="mb-8">Ensure you submit the current one because it refreshes every 30 seconds.</p>
-
-            <div class="mb-8 relative">
-
-                <label for="otp">Enter the 6-digit OTP from your app:</label>
-
-                <input type="number" name="otp" id="otp" class="w-full bg-[var(--color-background)] mt-2 py-3 px-4 rounded-xl" required>
-
+                    <p class="mt-1 text-sm text-[--color-subtletext]">
+                        {{ __("This will drastically reduce the security of your account.") }}
+                    </p>
+                </section>
             </div>
+        </div>
+    </div>
 
-            @if (count($errors) > 0)
-                @foreach ($errors->all() as $error)
-                    <p class="text-danger">{{ $error }}</p>
-                @endforeach
-            @endif
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
+        <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="max-w-xl">
+                <section>
 
-            <button class="w-full bg-[var(--color-background)] text-[var(--color-button-text)] py-3 px-4 rounded-full shadow-colored-hover cursor-pointer" type="submit">Disable 2FA</button>
-        </form>
+                    <h2 class="text-lg font-medium text-[--color-text]">
+                        {{ __('Enter OTP to disable 2FA') }}
+                    </h2>
 
-    </section>
+                    <form method="POST" action="{{ route('2fa.disable') }}" class="mt-4">
+                        @csrf
 
-@endsection
+                        <div class="mb-8 relative">
+
+                            <x-input-label for="otp" :value="__('One Time Password (OTP)')" />
+
+                            <x-text-input id="otp" type="number" name="otp" class="mt-1 block w-full" required />
+
+                        </div>
+
+                        <x-primary-button type="submit">
+                            {{ __('Disable 2FA') }}
+                        </x-primary-button>
+                    </form>
+
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+</x-app-layout>
