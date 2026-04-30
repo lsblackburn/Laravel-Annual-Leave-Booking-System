@@ -37,6 +37,7 @@ class AuthenticatedSessionController extends Controller
 
             // Park the user ID until they complete 2FA
             $request->session()->put('2fa:user_id', $user->id);
+            $request->session()->put('2fa:remember', $request->boolean('remember'));
             $request->session()->regenerate();
 
             return redirect()->route('2fa.verify');

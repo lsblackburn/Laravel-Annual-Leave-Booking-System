@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\RequireTwoFactorForRememberedSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,7 +45,7 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect(route('2fa.verify'));
         $response->assertSessionHas('2fa:user_id', $user->id);
-        $response->assertSessionMissing('2fa:remember');
+        $response->assertSessionHas('2fa:remember', true);
         $this->assertSame('existing-remember-token', $user->fresh()->getRememberToken());
     }
 
@@ -114,7 +116,7 @@ class TwoFactorAuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard'));
     }
 
-    public function test_valid_otp_does_not_create_a_remember_me_cookie(): void
+    public function test_valid_otp_preserves_remember_me_cookie(): void
     {
         $user = $this->createUserWithTwoFactorSecret();
         $otp = (new Google2FA())->getCurrentOtp($user->google2fa_secret);
@@ -126,7 +128,29 @@ class TwoFactorAuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect(route('dashboard'));
-        $response->assertCookieMissing(Auth::guard('web')->getRecallerName());
+        $response->assertCookie(Auth::guard('web')->getRecallerName());
+    }
+
+    public function test_remembered_two_factor_session_is_sent_back_to_otp_challenge(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+        $guard = Auth::guard('web');
+
+        $request = Request::create('/dashboard', 'GET');
+        $request->setLaravelSession($this->app['session']->driver());
+
+        $guard->setRequest($request);
+        $guard->setUser($user);
+
+        $viaRemember = new \ReflectionProperty($guard, 'viaRemember');
+        $viaRemember->setValue($guard, true);
+
+        $response = (new RequireTwoFactorForRememberedSession())->handle($request, fn () => response('ok'));
+
+        $this->assertGuest();
+        $this->assertSame(route('2fa.verify'), $response->getTargetUrl());
+        $this->assertSame($user->id, $request->session()->get('2fa:user_id'));
+        $this->assertTrue($request->session()->get('2fa:remember'));
     }
 
     public function test_valid_otp_disables_two_factor(): void
