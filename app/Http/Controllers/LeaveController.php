@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
@@ -65,17 +66,27 @@ class LeaveController extends Controller
         return redirect()->route('admin.leave-requests')->with('success', "Leave request {$request->input('response')} successfully.");
     }
 
-    public function calendar_events(): JsonResponse
+    public function calendar_events(Request $request): JsonResponse
     {
-        $leaves = Leave::with('user')
-            ->where('status', 'approved')
-            ->get();
+        $query = Leave::with('user')
+            ->where('status', 'approved');
+
+
+        // Only return events that overlap with the requested date range in the calendar
+        if ($request->filled('start')) {
+            $query->where('end_date', '>=', Carbon::parse($request->query('start'))->toDateString());
+        }
+        if ($request->filled('end')) {
+            $query->where('start_date', '<', Carbon::parse($request->query('end'))->toDateString());
+        }
+
+        $leaves = $query->get();
 
         $events = $leaves->map(function ($leave) {
             return [
                 'title' => $leave->user->name . ' - Annual Leave' . ($leave->is_half_day ? '(Half Day)' : ''),
                 'start' => $leave->start_date,
-                'end' => \Carbon\Carbon::parse($leave->end_date)->addDay()->toDateString(),
+                'end' => Carbon::parse($leave->end_date)->addDay()->toDateString(),
                 'allDay' => true,
                 'backgroundColor' => 'var(--color-success)',
                 'borderColor' => 'var(--color-success)',
