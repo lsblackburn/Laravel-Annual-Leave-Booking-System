@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
@@ -43,6 +44,45 @@ class TwoFactorAuthenticationTest extends TestCase
             ->assertSessionHasErrors(['one_time_password']);
 
         $this->assertTrue(RateLimiter::tooManyAttempts($this->otpThrottleKey($user), 5));
+    }
+
+    public function test_enabling_two_factor_encrypts_the_stored_secret_while_preserving_model_access(): void
+    {
+        $user = User::factory()->create();
+        $google2fa = new Google2FA();
+        $secret = $google2fa->generateSecretKey();
+
+        $this->actingAs($user)
+            ->withSession(['2fa_secret' => $secret])
+            ->post(route('2fa.enable'), ['otp' => $google2fa->getCurrentOtp($secret)])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertSame($secret, $user->fresh()->google2fa_secret);
+        $this->assertNotSame($secret, DB::table('users')->whereKey($user->id)->value('google2fa_secret'));
+    }
+
+    public function test_valid_otp_logs_in_user_after_two_factor_is_enabled(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+        $otp = (new Google2FA())->getCurrentOtp($user->google2fa_secret);
+
+        $response = $this->withSession(['2fa:user_id' => $user->id])
+            ->post(route('2fa'), ['one_time_password' => $otp]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_valid_otp_disables_two_factor(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+        $otp = (new Google2FA())->getCurrentOtp($user->google2fa_secret);
+
+        $this->actingAs($user)
+            ->post(route('2fa.disable'), ['otp' => $otp])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertNull($user->fresh()->google2fa_secret);
     }
 
     private function createUserWithTwoFactorSecret(): User

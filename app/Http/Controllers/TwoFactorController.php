@@ -116,8 +116,6 @@ class TwoFactorController extends Controller
 
 
         if ($google2fa->verifyKey($secret, $request->otp)) {
-
-            $secret = bcrypt($secret);
             $user->google2fa_secret = $secret;
             $user->save();
 
