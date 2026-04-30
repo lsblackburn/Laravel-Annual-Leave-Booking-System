@@ -11,6 +11,10 @@ class UserManagementController extends Controller
 {
     public function promote(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users')->with('error', 'You cannot promote yourself.');
+        }
+
         $user->role = 'admin';
         $user->save();
 
@@ -19,6 +23,10 @@ class UserManagementController extends Controller
 
     public function demote(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users')->with('error', 'You cannot demote yourself.');
+        }
+
         $user->role = 'employee';
         $user->save();
 
@@ -27,6 +35,10 @@ class UserManagementController extends Controller
 
     public function update(ProfileUpdateRequest $request, User $user): RedirectResponse
     {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users')->with('error', 'You cannot update your own profile in the Admin panel.');
+        }
+
         $user->fill($request->validated());
 
         if ($user->isDirty('email')) {

@@ -32,6 +32,10 @@ class AdminRoutesController extends Controller
 
     public function edit_user(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users')->with('error', 'You cannot edit yourself in the Admin panel.');
+        }
+
         $user = User::findOrFail($user->id);
 
         return view('admin.edit-user', compact('user'));
