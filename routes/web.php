@@ -12,7 +12,16 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+// 2FA challenge during login (user not yet authenticated)
+Route::get('/2fa/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
+Route::post('/2fa', [TwoFactorController::class, 'verify'])->name('2fa');
+
 Route::middleware(['auth'])->group(function () {
+
+    Route::get('/2fa/setup', [TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::get('/2fa/disable', [TwoFactorController::class, 'showDisableForm'])->name('2fa.disable.form');
+    Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 
     Route::get('/dashboard', function () {
         return view('dashboard');
