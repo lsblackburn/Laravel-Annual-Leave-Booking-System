@@ -43,15 +43,15 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request, ?User $user = null): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        $targetUser = $user ?? $request->user();
+
+        if ($user && $targetUser->id === $request->user()->id) {
             return redirect()->route('admin.users')->with('error', 'You cannot delete yourself through the Admin panel.');
         }
 
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);
-
-        $targetUser = $user ?? $request->user();
 
         if ($targetUser->id === $request->user()->id) {
             Auth::logout();
