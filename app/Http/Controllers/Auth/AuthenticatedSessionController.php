@@ -15,8 +15,10 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
+        $request->session()->forget(['2fa:user_id', '2fa:remember']);
+
         return view('auth.login');
     }
 
@@ -41,6 +43,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('2fa.verify');
         }
 
+        $request->session()->forget(['2fa:user_id', '2fa:remember']);
         $request->session()->regenerate();
 
         // No 2FA required normal login
