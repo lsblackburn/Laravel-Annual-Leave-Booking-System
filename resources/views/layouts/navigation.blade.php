@@ -6,16 +6,16 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto" />
+                        <x-application-logo class="block h-6 sm:h-7 md:h-8 lg:h-9 w-auto" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-6 lg:space-x-8 sm:-my-px ms-6 sm:ms-10 sm:flex">
 
                     @if (auth()->user()->isAdmin())
                         <div class="relative flex items-center group">
-                            <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-sm font-medium leading-5 transition duration-150 ease-in-out
+                            <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
                                 {{ request()->routeIs('admin.*')
                                     ? 'border-[--color-primary] text-[--color-text]'
                                     : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]'
@@ -30,12 +30,12 @@
                             <div class="absolute left-0 top-full z-50 hidden w-48 rounded-md bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
                                 <div class="py-1">
                                     <a href="{{ route('admin.leave-requests') }}"
-                                    class="block px-4 py-2 text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                         {{ __('View Leave Requests') }}
                                     </a>
 
                                     <a href="{{ route('admin.users') }}"
-                                    class="block px-4 py-2 text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                         {{ __('User Management') }}
                                     </a>
                                 </div>
@@ -43,12 +43,12 @@
                         </div>
                     @endif
 
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    <x-nav-link :href="route('dashboard')" class="text-xs md:text-sm" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
                     <div class="relative flex items-center group">
-                        <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-sm font-medium leading-5 transition duration-150 ease-in-out
+                        <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
                             {{ request()->routeIs('leave.*')
                                 ? 'border-[--color-primary] text-[--color-text]'
                                 : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]'
@@ -63,12 +63,12 @@
                         <div class="absolute left-0 top-full z-50 hidden w-48 rounded-md bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
                             <div class="py-1">
                                 <a href="{{ route('leave.view') }}"
-                                class="block px-4 py-2 text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                     {{ __('View Your Leave') }}
                                 </a>
 
                                 <a href="{{ route('leave.form') }}"
-                                class="block px-4 py-2 text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                     {{ __('Request Leave') }}
                                 </a>
                             </div>
@@ -82,7 +82,7 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-xs md:text-sm leading-4 font-medium rounded-md text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
