@@ -154,4 +154,15 @@ class LeaveController extends Controller
         return substr($value, 0, 10);
     }
 
+    public function delete(Leave $leave)
+    {
+        if ($leave->user_id !== Auth::id()) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        $leave->delete();
+
+        return redirect()->route('leave.view')->with('success', 'Leave request cancelled successfully.');
+    }
+
 }
