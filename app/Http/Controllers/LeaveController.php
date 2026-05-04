@@ -18,6 +18,19 @@ class LeaveController extends Controller
         return view('leave.view', compact('leaveRequests'));
     }
 
+    public function edit(Leave $request)
+    {
+        if ($request->user_id !== Auth::id()) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        if ($request->status !== 'pending') {
+            return redirect()->route('leave.view')->with('error', 'Only pending leave requests can be modified.');
+        }
+
+        return view('leave.edit', compact('request'));
+    }
+
     public function form()
     {
         return view('leave.form');
@@ -42,6 +55,34 @@ class LeaveController extends Controller
         Leave::create($validated); 
 
         return redirect()->route('leave.view')->with('success', 'Leave request created successfully.');
+    }
+
+    public function update(Request $request, Leave $leaveRequest)
+    {
+        if ($leaveRequest->user_id !== Auth::id()) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        if ($leaveRequest->status !== 'pending') {
+            return redirect()->route('leave.view')->with('error', 'Only pending leave requests can be modified.');
+        }
+
+        $validated = $request->validate([
+            'start_date' => 'required|date_format:d-m-Y',
+            'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
+            'is_half_day' => 'nullable|boolean',
+            'reason' => 'required|string|max:255',
+            'additional_info' => 'nullable|string|max:255',
+        ]);
+
+        $validated['start_date'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['start_date'])->format('Y-m-d');
+        $validated['end_date'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['end_date'])->format('Y-m-d');
+        $validated['is_half_day'] = $request->boolean('is_half_day');
+        $validated['user_id'] = Auth::id();
+
+        $leaveRequest->update($validated);
+
+        return redirect()->route('leave.view')->with('success', 'Leave request updated successfully.');
     }
 
     public function leave_response(Request $request, $id)
