@@ -42,6 +42,7 @@ Route::middleware(['auth', '2fa.remember'])->group(function () {
     Route::put('/leave/update/{leaveRequest}', [LeaveController::class, 'update'])->name('leave.update');
     Route::get('/leave/form', [LeaveController::class, 'form'])->name('leave.form');
     Route::post('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
+    Route::delete('/leave/delete/{leave}', [LeaveController::class, 'delete'])->name('leave.delete');
 });
 
 Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
