@@ -37,8 +37,9 @@ Route::middleware(['auth', '2fa.remember'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::get('/leave/view', [LeaveController::class, 'view'])->name('leave.view');
+    Route::get('/leave/edit/{request}', [LeaveController::class, 'edit'])->name('leave.edit');
+    Route::put('/leave/update/{leaveRequest}', [LeaveController::class, 'update'])->name('leave.update');
     Route::get('/leave/form', [LeaveController::class, 'form'])->name('leave.form');
     Route::post('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
 });
