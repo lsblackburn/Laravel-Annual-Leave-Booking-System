@@ -160,6 +160,10 @@ class LeaveController extends Controller
             abort(403, 'Unauthorised action.');
         }
 
+        if ($leave->status !== 'pending') {
+            return redirect()->route('leave.view')->with('error', 'Only pending leave requests can be cancelled.');
+        }
+
         $leave->delete();
 
         return redirect()->route('leave.view')->with('success', 'Leave request cancelled successfully.');
