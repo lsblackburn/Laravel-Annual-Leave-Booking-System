@@ -5,6 +5,10 @@
         </h2>
     </x-slot>
 
+    <x-dialog-box>
+        Are you sure you want to cancel this leave request?
+    </x-dialog-box>
+
     <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
 
         <div class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
@@ -63,14 +67,31 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)]">
+                                <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
 
                                     @if ($request->status == 'pending')
                                         <x-primary-link href="{{ route('leave.edit', ['request' => $request->id]) }}">
                                             Modify
                                         </x-primary-link>
+
+                                        <form
+                                            x-data
+                                            action="{{ route('leave.delete', $request->id) }}"
+                                            method="POST"
+                                            x-on:submit.prevent="$dispatch('confirm-cancel-leave', { form: $event.target })"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <x-primary-button>
+                                                Cancel
+                                            </x-primary-button>
+                                        </form>
+
                                     @else
-                                        No actions available
+                                        <span class="text-gray-400">
+                                            No actions available
+                                        </span>
                                     @endif
 
                                 </td>
