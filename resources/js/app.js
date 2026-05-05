@@ -44,6 +44,10 @@ function initialiseLeaveDatepicker(selector) {
         dateFormat: 'dd-MM-yyyy',
         minDate: new Date(),
         locale: leaveDatepickerLocale,
+        onSelect() {
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        },
     });
 }
 
