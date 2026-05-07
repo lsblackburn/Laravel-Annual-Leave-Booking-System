@@ -217,7 +217,7 @@ class LeaveController extends Controller
     {
         $allowance = $this->leaveAllowanceForDate($user, $settings, $allowanceYearStart);
         $usedDays = $user->leaves()
-            ->where('status', 'approved')
+            ->where('status', '!=', 'declined')
             ->where('end_date', '>=', $allowanceYearStart->toDateString())
             ->where('start_date', '<', $allowanceYearEnd->toDateString())
             ->get()
