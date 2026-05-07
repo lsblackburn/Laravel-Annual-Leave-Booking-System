@@ -214,7 +214,7 @@ class LeaveController extends Controller
             'base_allowance' => ['required', 'numeric', 'min:1'],
             'increase_after_years' => ['required', 'integer', 'min:0'],
             'increase_by_days' => ['required', 'numeric', 'min:0'],
-            'maximum_allowance' => ['required', 'numeric', 'min:1', 'after_or_equal:base_allowance'],
+            'maximum_allowance' => ['required', 'numeric', 'min:1', 'gte:base_allowance'],
         ]);
 
         $leave = LeaveSetting::firstOrFail();
