@@ -84,6 +84,10 @@ class LeaveController extends Controller
         $validated['is_half_day'] = $request->boolean('is_half_day');
         $validated['user_id'] = Auth::id();
 
+        if ($validated['is_half_day'] && !($validated['start_date'] === $validated['end_date'])) {
+            return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
+        }
+
         $leaveRequest->update($validated);
 
         return redirect()->route('leave.view')->with('success', 'Leave request updated successfully.');
