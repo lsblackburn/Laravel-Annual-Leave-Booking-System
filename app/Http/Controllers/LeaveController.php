@@ -185,7 +185,7 @@ class LeaveController extends Controller
                     $month = (int) $request->leave_refresh_month;
 
                     // Using a leap year so February can support 29
-                    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, 2024);
+                    $daysInMonth = Carbon::create(2024, $month, 1)->daysInMonth;
 
                     if ($value > $daysInMonth) {
                         $fail("The selected month only has {$daysInMonth} days.");
@@ -211,7 +211,7 @@ class LeaveController extends Controller
         }
 
         $validated = $request->validate([
-            'base_allowance' => ['required', 'integer', 'min:1'],
+            'base_allowance' => ['required', 'numeric', 'min:1'],
             'increase_after_years' => ['required', 'integer', 'min:0'],
             'increase_by_days' => ['required', 'numeric', 'min:0'],
             'maximum_allowance' => ['required', 'numeric', 'min:1'],
@@ -219,7 +219,7 @@ class LeaveController extends Controller
 
         $leave = LeaveSetting::firstOrFail();
 
-        $validated['base_allowance'] = (int) $validated['base_allowance'];
+        $validated['base_allowance'] = (float) $validated['base_allowance'];
         $validated['increase_after_years'] = (int) $validated['increase_after_years'];
         $validated['increase_by_days'] = (float) $validated['increase_by_days'];
         $validated['maximum_allowance'] = (float) $validated['maximum_allowance'];
