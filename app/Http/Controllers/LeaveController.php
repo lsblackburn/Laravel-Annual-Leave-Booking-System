@@ -14,7 +14,7 @@ class LeaveController extends Controller
 {
     public function view()
     {
-        $leaveRequests = Leave::where('user_id', Auth::id())->orderBy('start_date', 'asc')->get();
+        $leaveRequests = Leave::where('user_id', Auth::id())->orderBy('start_date', 'asc')->paginate(30);
 
         return view('leave.view', compact('leaveRequests'));
     }

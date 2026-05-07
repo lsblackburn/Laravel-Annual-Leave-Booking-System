@@ -16,7 +16,7 @@ class AdminRoutesController extends Controller
         $leaveRequests = Leave::select('leaves.*', 'users.name as user_name')
             ->join('users', 'leaves.user_id', '=', 'users.id')
             ->where('leaves.status', 'pending')
-            ->get();
+            ->paginate(30);
         // This query retrieves all pending leave requests along with the name of the user who made each request
 
         return view('admin.leave-requests', compact('leaveRequests'));
@@ -24,7 +24,7 @@ class AdminRoutesController extends Controller
 
     public function users()
     {
-        $users = User::orderBy('role', 'asc')->orderBy('name', 'asc')->get();
+        $users = User::orderBy('role', 'asc')->orderBy('name', 'asc')->paginate(30);
         // Order users by role first, then by name alphabetically
 
         return view('admin.users', compact('users'));

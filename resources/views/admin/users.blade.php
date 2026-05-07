@@ -11,7 +11,8 @@
             <table class="min-w-full text-sm text-left">
 
                 <!-- Header -->
-                <thead class="bg-[var(--color-surface-alt)] text-xs uppercase tracking-wider text-[var(--color-subtletext)]">
+                <thead
+                    class="bg-[var(--color-surface-alt)] text-xs uppercase tracking-wider text-[var(--color-subtletext)]">
                     <tr>
                         <th class="px-6 py-3 font-medium">User</th>
                         <th class="px-6 py-3 font-medium">Email</th>
@@ -25,7 +26,7 @@
 
                     @foreach ($users as $user)
                         <tr class="hover:bg-[var(--color-surface-alt)] transition">
-                            
+
                             <td class="px-6 py-4 font-medium">
                                 {{ $user->name }}
                             </td>
@@ -39,9 +40,11 @@
                             </td>
 
                             <!-- Actions -->
-                            <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
+                            <td
+                                class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
                                 @if (auth()->user()->id !== $user->id)
-                                    <a href="{{ route('admin.users.edit', $user->id) }}" class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <a href="{{ route('admin.users.edit', $user->id) }}"
+                                        class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </a>
                                     @if ($user->role !== 'admin')
@@ -49,16 +52,18 @@
                                             @csrf
                                             @method('POST')
                                             <input type="hidden" name="user_id" value="{{ $user->id }}">
-                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                            <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                                 Promote to Admin
                                             </button>
                                         </form>
-                                        @else
+                                    @else
                                         <form action="{{ route('admin.users.demote', $user->id) }}" method="POST">
                                             @csrf
                                             @method('POST')
                                             <input type="hidden" name="user_id" value="{{ $user->id }}">
-                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                            <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                                 Demote from Admin
                                             </button>
                                         </form>
@@ -75,8 +80,15 @@
 
                     <tr class="hover:bg-[var(--color-surface-alt)] transition">
                         <td colspan="4" class="text-center text-sm text-[var(--color-subtletext)]">
-                            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center justify-center cursor-pointer w-full gap-2 px-6 py-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                            <a href="{{ route('admin.users.create') }}"
+                                class="inline-flex items-center justify-center cursor-pointer w-full gap-2 px-6 py-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-plus-icon lucide-plus">
+                                    <path d="M5 12h14" />
+                                    <path d="M12 5v14" />
+                                </svg>
 
                                 Add New User
                             </a>
@@ -88,5 +100,7 @@
         </div>
 
     </div>
+
+    <x-pagination :items="$users" />
 
 </x-app-layout>
