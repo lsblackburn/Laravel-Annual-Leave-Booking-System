@@ -1,41 +1,44 @@
 <!DOCTYPE html x-data="themeHandler()" x-init="init()">
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Fonts -->
-        <link rel="stylesheet" href="https://use.typekit.net/pdd8jng.css">
+    <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" href="{{ asset('favicon/favicon-96x96.png') }}" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon/favicon.svg') }}" />
-        <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}" />
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}" />
-        <meta name="apple-mobile-web-app-title" content="Intranet" />
-        <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}" />
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://use.typekit.net/pdd8jng.css">
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="bg-[--color-background] antialiased">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('favicon/favicon-96x96.png') }}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon/favicon.svg') }}" />
+    <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}" />
+    <meta name="apple-mobile-web-app-title" content="Intranet" />
+    <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}" />
 
-        <x-setting/>
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
 
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[--color-background]">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-[250px] h-auto" />
-                </a>
-            </div>
+<body class="bg-[--color-background] antialiased">
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-[--color-card] shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
-            </div>
+    <x-setting />
+
+    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[--color-background]">
+        <div>
+            <a href="{{ route('dashboard') }}">
+                <x-application-logo class="w-[250px] h-auto" />
+            </a>
         </div>
 
-    </body>
+        <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-[--color-card] shadow-md overflow-hidden sm:rounded-lg">
+            {{ $slot }}
+        </div>
+    </div>
+
+</body>
+
 </html>

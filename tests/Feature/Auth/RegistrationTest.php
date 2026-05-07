@@ -33,6 +33,7 @@ class RegistrationTest extends TestCase
                 'email' => 'test@example.com',
                 'password' => 'password',
                 'password_confirmation' => 'password',
+                'employment_start_date' => now()->subYear()->format('d-m-Y'),
             ]);
 
         $createdUser = User::where('email', 'test@example.com')->first();
@@ -41,6 +42,24 @@ class RegistrationTest extends TestCase
         $this->assertTrue(Hash::check('password', $createdUser->password));
         $this->assertAuthenticatedAs($admin);
         $response->assertRedirect(route('admin.users', absolute: false));
+    }
+
+    public function test_admin_cannot_create_user_with_future_employment_start_date(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this
+            ->actingAs($admin)
+            ->post('/admin/users/register', [
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'password' => 'password',
+                'password_confirmation' => 'password',
+                'employment_start_date' => now()->addDay()->format('d-m-Y'),
+            ]);
+
+        $response->assertSessionHasErrors('employment_start_date');
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
     }
 
     public function test_non_admin_users_cannot_access_registration_screen(): void

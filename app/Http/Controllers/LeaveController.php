@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 
 use App\Models\Leave;
+use App\Models\LeaveSetting;
 
 class LeaveController extends Controller
 {
@@ -165,6 +166,67 @@ class LeaveController extends Controller
         $leave->delete();
 
         return redirect()->route('leave.view')->with('success', 'Leave request cancelled successfully.');
+    }
+
+    public function update_leave_refresh(Request $request)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        $validated = $request->validate([
+            'leave_refresh_month' => ['required', 'integer', 'min:1', 'max:12'],
+            'leave_refresh_day' => [
+                'required',
+                'integer',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+
+                    $month = (int) $request->leave_refresh_month;
+
+                    // Using a leap year so February can support 29
+                    $daysInMonth = Carbon::create(2024, $month, 1)->daysInMonth;
+
+                    if ($value > $daysInMonth) {
+                        $fail("The selected month only has {$daysInMonth} days.");
+                    }
+                },
+            ],
+        ]);
+
+        $leave = LeaveSetting::firstOrFail();
+
+        $validated['leave_refresh_month'] = (int) $validated['leave_refresh_month'];
+        $validated['leave_refresh_day'] = (int) $validated['leave_refresh_day'];
+
+        $leave->update($validated);
+
+        return redirect()->route('admin.view-leave-rules')->with('success', 'Leave refresh dates have updated successfully.');
+    }
+
+    public function update_leave_allowance(Request $request, LeaveSetting $leave)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        $validated = $request->validate([
+            'base_allowance' => ['required', 'numeric', 'min:1'],
+            'increase_after_years' => ['required', 'integer', 'min:0'],
+            'increase_by_days' => ['required', 'numeric', 'min:0'],
+            'maximum_allowance' => ['required', 'numeric', 'min:1', 'gte:base_allowance'],
+        ]);
+
+        $leave = LeaveSetting::firstOrFail();
+
+        $validated['base_allowance'] = (float) $validated['base_allowance'];
+        $validated['increase_after_years'] = (int) $validated['increase_after_years'];
+        $validated['increase_by_days'] = (float) $validated['increase_by_days'];
+        $validated['maximum_allowance'] = (float) $validated['maximum_allowance'];
+
+        $leave->update($validated);
+
+        return redirect()->route('admin.view-leave-rules')->with('success', 'Leave allowance settings have updated successfully.');
     }
 
 }

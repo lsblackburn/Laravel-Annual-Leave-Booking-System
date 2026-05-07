@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Leave;
 use App\Models\User;
+use App\Models\LeaveSetting;
 
 class AdminRoutesController extends Controller
 {
@@ -46,6 +47,18 @@ class AdminRoutesController extends Controller
         return view('auth.register', [
             'suggestedColour' => User::generateUniqueColour(),
         ]);
+    }
+
+    public function view_config()
+    {
+        return view('admin.app-config');
+    }
+
+    public function view_leave_rules() {
+        $settings = LeaveSetting::first();
+
+        return view('admin.leave-rules', compact('settings'));
+
     }
 
 }

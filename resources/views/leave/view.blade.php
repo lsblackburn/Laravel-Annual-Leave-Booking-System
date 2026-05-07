@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-[--color-text] leading-tight">
+        <h2 class="font-semibold text-xl text-[--color-text] leading-tight mb-2">
             {{ __('Your Annual Leave') }}
         </h2>
     </x-slot>
@@ -10,12 +10,36 @@
     </x-dialog-box>
 
     <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
+        <div class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
+            <div class="p-4 sm:p-6 bg-[--color-card] shadow sm:rounded-lg">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <div>
+                        <p class="text-sm text-center sm:text-left text-[--color-subtletext]">Your Leave Allowance</p>
+                        <p
+                            class="text-xl md:text-2xl lg:text-3xl text-center sm:text-left font-semibold text-[--color-text]">
+                            {{ Auth::user()->leave_allowance }} days
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-center sm:text-right text-[--color-subtletext]">Remaining</p>
+                        <p class="text-xl text-center sm:text-right font-medium text-[--color-primary]">
+                            {{ Auth::user()->remainingLeaveAllowance() }} days
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
 
         <div class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
             <table class="min-w-full text-sm text-left">
 
                 <!-- Header -->
-                <thead class="bg-[var(--color-surface-alt)] text-xs uppercase tracking-wider text-[var(--color-subtletext)]">
+                <thead
+                    class="bg-[var(--color-surface-alt)] text-xs uppercase tracking-wider text-[var(--color-subtletext)]">
                     <tr>
                         <th class="px-6 py-3 font-medium">Leave Type</th>
                         <th class="px-6 py-3 font-medium">Start Date</th>
@@ -28,7 +52,7 @@
                 <!-- Body -->
                 <tbody class="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
 
-                     @if ($leaveRequests->isEmpty()) 
+                    @if ($leaveRequests->isEmpty())
                         <tr>
                             <td colspan="5" class="px-6 py-4 text-center text-sm text-[var(--color-subtletext)]">
                                 No leave requests found.
@@ -37,7 +61,7 @@
                     @else
                         @foreach ($leaveRequests as $request)
                             <tr class="hover:bg-[var(--color-surface-alt)] transition">
-                                
+
                                 <td class="px-6 py-4">
                                     {{ $request->is_half_day ? 'Half Day' : 'Full Day(s)' }}
                                 </td>
@@ -60,26 +84,24 @@
                                         ];
                                     @endphp
 
-                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
+                                    <span
+                                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
                                         {{ $statusColors[strtolower($request->status)] ?? 'bg-gray-100 text-gray-600' }}">
                                         {{ ucfirst($request->status) }}
                                     </span>
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
+                                <td
+                                    class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
 
                                     @if ($request->status == 'pending')
                                         <x-primary-link href="{{ route('leave.edit', ['request' => $request->id]) }}">
                                             Modify
                                         </x-primary-link>
 
-                                        <form
-                                            x-data
-                                            action="{{ route('leave.delete', $request->id) }}"
-                                            method="POST"
-                                            x-on:submit.prevent="$dispatch('confirm-cancel-leave', { form: $event.target })"
-                                        >
+                                        <form x-data action="{{ route('leave.delete', $request->id) }}" method="POST"
+                                            x-on:submit.prevent="$dispatch('confirm-cancel-leave', { form: $event.target })">
                                             @csrf
                                             @method('DELETE')
 
@@ -87,7 +109,6 @@
                                                 Cancel
                                             </x-primary-button>
                                         </form>
-
                                     @else
                                         <span class="text-gray-400">
                                             No actions available
@@ -102,8 +123,15 @@
 
                     <tr class="hover:bg-[var(--color-surface-alt)] transition">
                         <td colspan="5" class="text-center text-sm text-[var(--color-subtletext)]">
-                            <a href="{{ route('leave.form') }}" class="inline-flex items-center justify-center cursor-pointer w-full gap-2 px-6 py-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                            <a href="{{ route('leave.form') }}"
+                                class="inline-flex items-center justify-center cursor-pointer w-full gap-2 px-6 py-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-plus-icon lucide-plus">
+                                    <path d="M5 12h14" />
+                                    <path d="M12 5v14" />
+                                </svg>
 
                                 Create new leave request
                             </a>
@@ -115,5 +143,5 @@
         </div>
 
     </div>
-    
+
 </x-app-layout>

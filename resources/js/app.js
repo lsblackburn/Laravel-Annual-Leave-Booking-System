@@ -21,38 +21,53 @@ const leaveDatepickerLocale = {
     firstDay: 0
 };
 
-function leaveDateFromInputValue(value) {
+function leaveDateFromInputValue(value, fallbackDate = null) {
     const parts = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
 
     if (!parts) {
-        return new Date();
+        return fallbackDate;
     }
 
     return new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
 }
 
-function initialiseLeaveDatepicker(selector) {
+function initialiseLeaveDatepicker(selector, options = {}) {
     const input = document.querySelector(selector);
 
     if (!input) {
         return;
     }
 
-    new AirDatepicker(input, {
-        selectedDates: [leaveDateFromInputValue(input.value)],
+    const fallbackSelectedDate = !('maxDate' in options) ? new Date() : null;
+    const selectedDate = leaveDateFromInputValue(input.value, fallbackSelectedDate);
+    const datepickerOptions = {
         autoClose: true,
         dateFormat: 'dd-MM-yyyy',
-        minDate: new Date(),
         locale: leaveDatepickerLocale,
         onSelect() {
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
         },
-    });
+        ...options,
+    };
+
+    if (selectedDate) {
+        datepickerOptions.selectedDates = [selectedDate];
+    }
+
+    if (!('minDate' in datepickerOptions) && !('maxDate' in datepickerOptions)) {
+        datepickerOptions.minDate = new Date();
+    }
+
+    new AirDatepicker(input, datepickerOptions);
 }
+
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
 
 initialiseLeaveDatepicker('#start_date');
 initialiseLeaveDatepicker('#end_date');
+initialiseLeaveDatepicker('#employment_start_date', { maxDate: yesterday });
 
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('dashboard-calendar');
