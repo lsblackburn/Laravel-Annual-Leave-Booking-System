@@ -113,7 +113,9 @@ class User extends Authenticatable
         $settings = LeaveSetting::first();
         $today = now();
         $allowanceYearStart = $this->leaveAllowanceYearStart($settings, $today);
-        $allowanceYearEnd = $allowanceYearStart?->copy()->addYear();
+        $allowanceYearEnd = $allowanceYearStart
+            ? $this->leaveRefreshDateForYear($settings, (int) $allowanceYearStart->year + 1)
+            : null;
 
         $query = $this->leaves()->where('status', 'approved');
 

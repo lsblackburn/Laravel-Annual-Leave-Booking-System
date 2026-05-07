@@ -54,6 +54,22 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(18.0, $user->remainingLeaveAllowance());
     }
 
+    public function test_february_twenty_ninth_allowance_year_ends_on_february_twenty_eighth_in_non_leap_year(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2025-02-27'));
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 29,
+            'leave_refresh_month' => 2,
+        ]);
+
+        $user = User::factory()->create(['leave_allowance' => 20]);
+
+        $this->createLeave($user, '2025-02-28', '2025-02-28', 'approved');
+
+        $this->assertSame(0.0, $user->approvedLeaveDaysUsed());
+        $this->assertSame(20.0, $user->remainingLeaveAllowance());
+    }
+
     public function test_calculating_leave_allowance_preserves_existing_allowance_without_employment_start_date(): void
     {
         LeaveSetting::first()->update([
