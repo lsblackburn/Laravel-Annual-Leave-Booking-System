@@ -144,4 +144,8 @@
 
     </div>
 
+
+    <x-pagination :items="$leaveRequests" />
+
+
 </x-app-layout>
