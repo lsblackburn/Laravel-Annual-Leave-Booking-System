@@ -189,6 +189,142 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_pending_leave_reserves_allowance_against_new_requests(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+        $this->createPendingLeave($user, '2026-02-10', '2026-02-11');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '12-02-2026',
+                'end_date' => '12-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-12',
+            'end_date' => '2026-02-12',
+        ]);
+    }
+
+    public function test_deleting_pending_leave_releases_reserved_allowance(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+        $pendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-11');
+
+        $blockedResponse = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '12-02-2026',
+                'end_date' => '12-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $blockedResponse->assertSessionHasErrors('end_date');
+
+        $this->actingAs($user)
+            ->delete(route('leave.delete', $pendingLeave))
+            ->assertRedirect(route('leave.view'));
+
+        $allowedResponse = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '12-02-2026',
+                'end_date' => '12-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $allowedResponse
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-12',
+            'end_date' => '2026-02-12',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_rejecting_pending_leave_releases_reserved_allowance(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+        $pendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-11');
+
+        $blockedResponse = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '12-02-2026',
+                'end_date' => '12-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $blockedResponse->assertSessionHasErrors('end_date');
+
+        $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $pendingLeave), [
+                'response' => 'rejected',
+            ])
+            ->assertRedirect(route('admin.leave-requests'));
+
+        $this->assertSame('rejected', $pendingLeave->refresh()->status);
+
+        $allowedResponse = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '12-02-2026',
+                'end_date' => '12-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $allowedResponse
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_admin_cannot_approve_pending_leave_when_approved_usage_would_exceed_allowance(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+        $firstPendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-11');
+        $secondPendingLeave = $this->createPendingLeave($user, '2026-02-12', '2026-02-13');
+
+        $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $firstPendingLeave), [
+                'response' => 'approved',
+            ])
+            ->assertRedirect(route('admin.leave-requests'));
+
+        $this->assertSame('approved', $firstPendingLeave->refresh()->status);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $secondPendingLeave), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('error', 'This leave request would exceed the employee\'s remaining allowance.');
+
+        $this->assertSame('pending', $secondPendingLeave->refresh()->status);
+    }
+
     private function setCalendarYearRefresh(): void
     {
         LeaveSetting::first()->update([
@@ -218,5 +354,16 @@ class LeaveRequestAllowanceTest extends TestCase
         $leave->forceFill(['status' => 'approved'])->save();
 
         return $leave;
+    }
+
+    private function createPendingLeave(User $user, string $startDate, string $endDate): Leave
+    {
+        return Leave::create([
+            'user_id' => $user->id,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
     }
 }
