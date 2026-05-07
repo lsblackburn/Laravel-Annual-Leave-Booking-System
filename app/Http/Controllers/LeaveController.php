@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
@@ -56,6 +57,8 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
+        $this->ensureLeaveRequestFitsAllowance($validated);
+
         Leave::create($validated); 
 
         return redirect()->route('leave.view')->with('success', 'Leave request created successfully.');
@@ -87,6 +90,8 @@ class LeaveController extends Controller
         if ($validated['is_half_day'] && !($validated['start_date'] === $validated['end_date'])) {
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
+
+        $this->ensureLeaveRequestFitsAllowance($validated);
 
         $leaveRequest->update($validated);
 
@@ -159,6 +164,32 @@ class LeaveController extends Controller
         }
 
         return substr($value, 0, 10);
+    }
+
+    private function ensureLeaveRequestFitsAllowance(array $leaveRequest): void
+    {
+        $requestedDays = $this->requestedLeaveDays($leaveRequest);
+        $remainingAllowance = (float) Auth::user()->remainingLeaveAllowance();
+
+        if ($requestedDays <= $remainingAllowance) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'end_date' => "This request uses {$requestedDays} days, but you only have {$remainingAllowance} days remaining.",
+        ]);
+    }
+
+    private function requestedLeaveDays(array $leaveRequest): float
+    {
+        if ($leaveRequest['is_half_day']) {
+            return 0.5;
+        }
+
+        $startDate = Carbon::parse($leaveRequest['start_date']);
+        $endDate = Carbon::parse($leaveRequest['end_date']);
+
+        return (float) ($startDate->diffInDays($endDate) + 1);
     }
 
     public function delete(Leave $leave)
