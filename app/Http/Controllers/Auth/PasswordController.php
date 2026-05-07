@@ -36,6 +36,6 @@ class PasswordController extends Controller
             return redirect()->route('admin.users.edit', $targetUser)->with('success', 'Password updated successfully.');
         }
 
-        return back()->with('status', 'password-updated');
+        return back()->with('success', 'Password updated successfully.');
     }
 }
