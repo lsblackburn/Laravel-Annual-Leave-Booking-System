@@ -24,7 +24,7 @@ class AdminRoutesController extends Controller
 
     public function users()
     {
-        $users = User::orderBy('role', 'asc')->orderBy('name', 'asc')->get();
+        $users = User::orderBy('role', 'asc')->orderBy('name', 'asc')->paginate(30);
         // Order users by role first, then by name alphabetically
 
         return view('admin.users', compact('users'));
