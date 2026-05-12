@@ -36,6 +36,10 @@ class LeaveController extends Controller
 
     public function form()
     {
+        if (Auth::user()->remainingLeaveAllowance() == 0) {
+            return redirect()->route('leave.view')->with('error', 'Unfortunately, you do not have any annual leave allowance remaining in this year.');
+        }
+
         return view('leave.form');
     }
 
