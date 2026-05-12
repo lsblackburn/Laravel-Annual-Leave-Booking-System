@@ -297,6 +297,10 @@ class LeaveController extends Controller
 
     private function leaveAllowanceForDate(User $user, LeaveSetting $settings, Carbon $date): float
     {
+        if ($date->equalTo($this->leaveAllowanceYearStart($settings, now()))) {
+            return (float) $user->leave_allowance;
+        }
+
         if (! $settings->base_allowance || ! $user->employment_start_date) {
             return (float) $user->leave_allowance;
         }

@@ -73,6 +73,42 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_current_allowance_year_validation_uses_stored_user_allowance(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-02-01'));
+        LeaveSetting::first()->update([
+            'base_allowance' => 20,
+            'increase_after_years' => 2,
+            'increase_by_days' => 1,
+            'maximum_allowance' => 30,
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 1,
+        ]);
+        $user = User::factory()->create([
+            'employment_start_date' => '2016-01-01',
+            'leave_allowance' => 20,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '01-03-2026',
+                'end_date' => '21-03-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-03-01',
+            'end_date' => '2026-03-21',
+        ]);
+    }
+
     public function test_user_cannot_update_leave_request_to_exceed_remaining_allowance(): void
     {
         $user = User::factory()->create(['leave_allowance' => 2]);
