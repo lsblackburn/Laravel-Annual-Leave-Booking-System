@@ -9,9 +9,11 @@
         open: false,
         action: '',
         request: {},
+        managerComment: '',
         show(action, request) {
             this.action = action;
             this.request = request;
+            this.managerComment = '';
             this.open = true;
         },
     }" x-on:keydown.escape.window="open = false">
@@ -74,7 +76,7 @@
                         <div>
                             <x-input-label for="manager_comment" :value="__('Manager Comment')" />
                             <x-text-textarea id="manager_comment" name="manager_comment" type="text"
-                                class="mt-1 block w-full" />
+                                class="mt-1 block w-full" x-model="managerComment" />
                         </div>
 
                         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
