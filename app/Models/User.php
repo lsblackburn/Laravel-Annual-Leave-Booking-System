@@ -29,6 +29,12 @@ class User extends Authenticatable
 
             $user->colour = static::generateUniqueColour();
         });
+
+        static::saving(function (User $user): void {
+            if (! $user->exists || $user->isDirty('employment_start_date')) {
+                $user->leave_allowance = $user->calculateLeaveAllowance();
+            }
+        }); // On employment start date creation or update, sync leave allowance with rules
     }
 
     public static function generateUniqueColour(): string

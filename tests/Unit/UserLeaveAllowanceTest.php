@@ -123,6 +123,58 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(21.0, $user->calculateLeaveAllowance());
     }
 
+    public function test_leave_allowance_is_synced_when_user_is_created_with_employment_start_date(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-06'));
+        LeaveSetting::first()->update([
+            'base_allowance' => 20,
+            'increase_after_years' => 2,
+            'increase_by_days' => 1,
+            'maximum_allowance' => 30,
+        ]);
+
+        $user = User::factory()->create([
+            'employment_start_date' => '2023-05-06',
+        ]);
+
+        $this->assertSame(22.0, (float) $user->refresh()->leave_allowance);
+    }
+
+    public function test_leave_allowance_is_synced_when_employment_start_date_changes(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-06'));
+        LeaveSetting::first()->update([
+            'base_allowance' => 20,
+            'increase_after_years' => 2,
+            'increase_by_days' => 1,
+            'maximum_allowance' => 30,
+        ]);
+
+        $user = User::factory()->create([
+            'employment_start_date' => '2025-05-06',
+        ]);
+
+        $this->assertSame(20.0, (float) $user->refresh()->leave_allowance);
+
+        $user->update(['employment_start_date' => '2023-05-06']);
+
+        $this->assertSame(22.0, (float) $user->refresh()->leave_allowance);
+    }
+
+    public function test_leave_allowance_is_not_synced_for_unrelated_user_updates(): void
+    {
+        $user = User::factory()->create([
+            'employment_start_date' => null,
+            'leave_allowance' => 25,
+        ]);
+
+        $user->forceFill(['leave_allowance' => 17])->save();
+
+        $user->update(['name' => 'Updated User']);
+
+        $this->assertSame(17.0, (float) $user->refresh()->leave_allowance);
+    }
+
     private function createLeave(User $user, string $startDate, string $endDate, string $status): Leave
     {
         $leave = Leave::create([
