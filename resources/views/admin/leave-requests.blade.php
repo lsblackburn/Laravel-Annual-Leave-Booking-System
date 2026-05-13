@@ -9,9 +9,11 @@
         open: false,
         action: '',
         request: {},
+        managerComment: '',
         show(action, request) {
             this.action = action;
             this.request = request;
+            this.managerComment = '';
             this.open = true;
         },
     }" x-on:keydown.escape.window="open = false">
@@ -64,27 +66,37 @@
                             <dd class="sm:col-span-2 whitespace-pre-line text-[var(--color-text)]"
                                 x-text="request.additionalInfo"></dd>
                         </div>
+
                     </dl>
 
-                    <form x-bind:action="action" method="POST"
-                        class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <form x-bind:action="action" method="POST" class="mt-6">
                         @csrf
                         @method('POST')
 
-                        <button type="button" x-on:click="open = false"
-                            class="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
-                            Close
-                        </button>
+                        <div>
+                            <x-input-label for="manager_comment" :value="__('Manager Comment')" />
+                            <x-text-textarea id="manager_comment" name="manager_comment" type="text"
+                                class="mt-1 block w-full" x-model="managerComment" />
+                        </div>
 
-                        <button type="submit" name="response" value="rejected"
-                            class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-danger] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-danger-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
-                            Decline
-                        </button>
+                        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
 
-                        <button type="submit" name="response" value="approved"
-                            class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-success] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-success-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
-                            Approve
-                        </button>
+                            <button type="button" x-on:click="open = false"
+                                class="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                                Close
+                            </button>
+
+                            <button type="submit" name="response" value="rejected"
+                                class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-danger] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-danger-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                                Decline
+                            </button>
+
+                            <button type="submit" name="response" value="approved"
+                                class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-success] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-success-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                                Approve
+                            </button>
+
+                        </div>
                     </form>
                 </div>
             </div>

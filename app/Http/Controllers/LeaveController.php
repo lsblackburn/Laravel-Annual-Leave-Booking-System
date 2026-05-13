@@ -111,6 +111,10 @@ class LeaveController extends Controller
 
         $leaveRequest = Leave::findOrFail($id);
 
+        $validated = $request->validate([
+            'manager_comment' => 'nullable',
+        ]);
+
         if ($leaveRequest->status !== 'pending') {
             return redirect()->route('admin.leave-requests')->with('error', 'This leave request has already been processed.');
         }
@@ -128,6 +132,7 @@ class LeaveController extends Controller
             }
         }
 
+        $leaveRequest->manager_comment = $validated['manager_comment'];
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
 
