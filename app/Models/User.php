@@ -116,6 +116,21 @@ class User extends Authenticatable
 
     public function approvedLeaveDaysUsed(): float
     {
+        return $this->leaveDaysUsedForStatus('approved');
+    }
+
+    public function remainingLeaveAllowance(): float
+    {
+        return $this->leave_allowance - $this->approvedLeaveDaysUsed();
+    }
+
+    public function calculatePendingLeaveNumber(): float
+    {
+        return $this->leaveDaysUsedForStatus('pending');
+    }
+
+    private function leaveDaysUsedForStatus(string $status): float
+    {
         $settings = LeaveSetting::first();
         $today = now();
         $allowanceYearStart = $this->leaveAllowanceYearStart($settings, $today);
@@ -123,7 +138,7 @@ class User extends Authenticatable
             ? $this->leaveRefreshDateForYear($settings, (int) $allowanceYearStart->year + 1)
             : null;
 
-        $query = $this->leaves()->where('status', 'approved');
+        $query = $this->leaves()->where('status', $status);
 
         if ($allowanceYearStart && $allowanceYearEnd) {
             $query
@@ -151,18 +166,6 @@ class User extends Authenticatable
 
                 return $startDate->diffInDays($endDate) + 1;
             });
-    }
-
-    public function remainingLeaveAllowance(): float
-    {
-        return $this->leave_allowance - $this->approvedLeaveDaysUsed();
-    }
-
-    public function calculatePendingLeaveNumber(): int
-    {
-        return $this->leaves()
-            ->where('status', 'pending')
-            ->count();
     }
 
     private function leaveAllowanceYearStart(?LeaveSetting $settings, Carbon $today): ?Carbon
