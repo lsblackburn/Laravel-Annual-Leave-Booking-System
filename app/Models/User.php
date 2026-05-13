@@ -158,6 +158,13 @@ class User extends Authenticatable
         return $this->leave_allowance - $this->approvedLeaveDaysUsed();
     }
 
+    public function calculatePendingLeaveNumber(): int
+    {
+        return $this->leaves()
+            ->where('status', 'pending')
+            ->count();
+    }
+
     private function leaveAllowanceYearStart(?LeaveSetting $settings, Carbon $today): ?Carbon
     {
         if (! $settings?->leave_refresh_day || ! $settings?->leave_refresh_month) {

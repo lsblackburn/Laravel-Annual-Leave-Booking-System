@@ -38,6 +38,18 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(17.0, $user->remainingLeaveAllowance());
     }
 
+    public function test_pending_leave_number_only_counts_pending_leave_requests(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+
+        $this->createLeave($user, '2026-05-01', '2026-05-02', 'pending');
+        $this->createLeave($user, '2026-05-03', '2026-05-03', 'pending');
+        $this->createLeave($user, '2026-05-04', '2026-05-04', 'approved');
+        $this->createLeave($user, '2026-05-05', '2026-05-05', 'rejected');
+
+        $this->assertSame(2, $user->calculatePendingLeaveNumber());
+    }
+
     public function test_leave_crossing_refresh_date_only_counts_days_in_current_allowance_year(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-06'));
