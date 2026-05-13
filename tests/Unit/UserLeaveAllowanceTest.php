@@ -38,6 +38,25 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(17.0, $user->remainingLeaveAllowance());
     }
 
+    public function test_pending_leave_number_returns_pending_leave_days(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-06'));
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 4,
+        ]);
+
+        $user = User::factory()->create(['leave_allowance' => 20]);
+
+        $this->createLeave($user, '2026-05-01', '2026-05-03', 'pending');
+        $this->createLeave($user, '2026-05-04', '2026-05-04', 'pending', true);
+        $this->createLeave($user, '2026-05-04', '2026-05-04', 'approved');
+        $this->createLeave($user, '2026-05-05', '2026-05-05', 'rejected');
+        $this->createLeave($user, '2026-03-05', '2026-03-05', 'pending');
+
+        $this->assertSame(3.5, $user->calculatePendingLeaveNumber());
+    }
+
     public function test_leave_crossing_refresh_date_only_counts_days_in_current_allowance_year(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-06'));
@@ -187,13 +206,14 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(17.0, (float) $user->refresh()->leave_allowance);
     }
 
-    private function createLeave(User $user, string $startDate, string $endDate, string $status): Leave
+    private function createLeave(User $user, string $startDate, string $endDate, string $status, bool $isHalfDay = false): Leave
     {
         $leave = Leave::create([
             'user_id' => $user->id,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'reason' => 'Annual leave',
+            'is_half_day' => $isHalfDay,
         ]);
 
         $leave->forceFill(['status' => $status])->save();
