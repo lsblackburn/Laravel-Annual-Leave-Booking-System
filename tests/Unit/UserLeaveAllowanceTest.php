@@ -140,6 +140,18 @@ class UserLeaveAllowanceTest extends TestCase
         $this->assertSame(22.0, (float) $user->refresh()->leave_allowance);
     }
 
+    public function test_leave_allowance_uses_database_default_when_user_is_created_without_employment_start_date_or_allowance(): void
+    {
+        $user = User::create([
+            'name' => 'No Start Date',
+            'email' => 'no-start-date@example.com',
+            'password' => 'password',
+            'employment_start_date' => null,
+        ]);
+
+        $this->assertSame(20.0, (float) $user->refresh()->leave_allowance);
+    }
+
     public function test_leave_allowance_is_synced_when_employment_start_date_changes(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-06'));
