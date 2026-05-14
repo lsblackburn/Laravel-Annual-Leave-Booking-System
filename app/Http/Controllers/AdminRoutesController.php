@@ -62,11 +62,8 @@ class AdminRoutesController extends Controller
     }
 
     public function view_company_departments() {
-
         $departments = UserDepartment::orderBy('department', 'asc')->paginate(30);
 
         return view('admin.config.company-departments', compact('departments'));
-
     }
-
 }
