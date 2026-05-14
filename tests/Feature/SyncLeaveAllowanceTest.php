@@ -69,9 +69,12 @@ class SyncLeaveAllowanceTest extends TestCase
 
     private function createUserForAllowanceSync(): User
     {
-        return User::factory()->create([
+        $user = User::factory()->create([
             'employment_start_date' => '2020-02-01',
-            'leave_allowance' => 20,
         ]);
+
+        $user->forceFill(['leave_allowance' => 20])->saveQuietly();
+
+        return $user;
     }
 }
