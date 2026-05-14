@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Leave;
 use App\Models\User;
 use App\Models\LeaveSetting;
+use App\Models\UserDepartment;
 
 class AdminRoutesController extends Controller
 {
@@ -57,7 +58,14 @@ class AdminRoutesController extends Controller
     public function view_leave_rules() {
         $settings = LeaveSetting::first();
 
-        return view('admin.leave-rules', compact('settings'));
+        return view('admin.config.leave-rules', compact('settings'));
+    }
+
+    public function view_company_departments() {
+
+        $departments = UserDepartment::orderBy('department', 'asc')->paginate(30);
+
+        return view('admin.config.company-departments', compact('departments'));
 
     }
 

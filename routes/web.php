@@ -62,6 +62,8 @@ Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
     Route::get('/admin/app-configuration/leave-rules', [AdminRoutesController::class, 'view_leave_rules'])->name('admin.view-leave-rules');
     Route::patch('/admin/app-configuration/leave-refresh/update', [LeaveController::class, 'update_leave_refresh'])->name('admin.leave-refresh.update');
     Route::patch('/admin/app-configuration/leave-allowance/update', [LeaveController::class, 'update_leave_allowance'])->name('admin.leave-allowance.update');
+
+    Route::get('/admin/app-configuration/company-departments', [AdminRoutesController::class, 'view_company_departments'])->name('admin.view-company-departments');
 });
 
 require __DIR__.'/auth.php';
