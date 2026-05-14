@@ -13,6 +13,13 @@ class LeaveRequestAllowanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Carbon::setTestNow(Carbon::parse('2026-01-01'));
+    }
+
     protected function tearDown(): void
     {
         Carbon::setTestNow();
@@ -73,6 +80,57 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_create_leave_request_starting_in_the_past(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-14'));
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '13-05-2026',
+                'end_date' => '13-05-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('start_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-05-13',
+        ]);
+    }
+
+    public function test_user_can_create_leave_request_starting_today(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-14'));
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '14-05-2026',
+                'end_date' => '14-05-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-05-14',
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_current_allowance_year_validation_uses_stored_user_allowance(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-02-01'));
@@ -93,7 +151,7 @@ class LeaveRequestAllowanceTest extends TestCase
             ->from(route('leave.form'))
             ->post(route('leave.create'), [
                 'start_date' => '01-03-2026',
-                'end_date' => '21-03-2026',
+                'end_date' => '31-03-2026',
                 'is_half_day' => '0',
                 'reason' => 'Annual leave',
             ]);
@@ -105,7 +163,7 @@ class LeaveRequestAllowanceTest extends TestCase
         $this->assertDatabaseMissing('leaves', [
             'user_id' => $user->id,
             'start_date' => '2026-03-01',
-            'end_date' => '2026-03-21',
+            'end_date' => '2026-03-31',
         ]);
     }
 
@@ -140,6 +198,39 @@ class LeaveRequestAllowanceTest extends TestCase
 
         $this->assertSame('2026-02-10', $pendingLeave->start_date);
         $this->assertSame('2026-02-10', $pendingLeave->end_date);
+    }
+
+    public function test_user_cannot_update_leave_request_to_start_in_the_past(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-14'));
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->setCalendarYearRefresh();
+
+        $pendingLeave = Leave::create([
+            'user_id' => $user->id,
+            'start_date' => '2026-05-20',
+            'end_date' => '2026-05-20',
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.edit', $pendingLeave))
+            ->put(route('leave.update', $pendingLeave), [
+                'start_date' => '13-05-2026',
+                'end_date' => '13-05-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.edit', $pendingLeave))
+            ->assertSessionHasErrors('start_date');
+
+        $pendingLeave->refresh();
+
+        $this->assertSame('2026-05-20', $pendingLeave->start_date);
+        $this->assertSame('2026-05-20', $pendingLeave->end_date);
     }
 
     public function test_user_can_create_leave_after_next_refresh_even_if_current_allowance_year_is_exhausted(): void

@@ -42,7 +42,7 @@ class LeaveController extends Controller
     public function create(Request $request)
     {
         $validated = $request->validate([
-            'start_date' => 'required|date_format:d-m-Y',
+            'start_date' => $this->leaveStartDateRules(),
             'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
             'is_half_day' => 'nullable|boolean',
             'reason' => 'required|string|max:255',
@@ -76,7 +76,7 @@ class LeaveController extends Controller
         }
 
         $validated = $request->validate([
-            'start_date' => 'required|date_format:d-m-Y',
+            'start_date' => $this->leaveStartDateRules(),
             'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
             'is_half_day' => 'nullable|boolean',
             'reason' => 'required|string|max:255',
@@ -132,7 +132,7 @@ class LeaveController extends Controller
             }
         }
 
-        $leaveRequest->manager_comment = $validated['manager_comment'];
+        $leaveRequest->manager_comment = $validated['manager_comment'] ?? null;
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
 
@@ -183,6 +183,25 @@ class LeaveController extends Controller
         }
 
         return substr($value, 0, 10);
+    }
+
+    private function leaveStartDateRules(): array
+    {
+        return [
+            'required',
+            'date_format:d-m-Y',
+            function ($attribute, $value, $fail) {
+                try {
+                    $startDate = Carbon::createFromFormat('d-m-Y', $value)->startOfDay();
+                } catch (\Throwable) {
+                    return;
+                }
+
+                if ($startDate->lt(now()->startOfDay())) {
+                    $fail('The start date must be today or a future date.');
+                }
+            },
+        ];
     }
 
     private function ensureLeaveRequestFitsAllowance(
@@ -302,7 +321,7 @@ class LeaveController extends Controller
 
     private function leaveAllowanceForDate(User $user, LeaveSetting $settings, Carbon $date): float
     {
-        if ($date->equalTo($this->leaveAllowanceYearStart($settings, now()))) {
+        if ($date->isSameDay($this->leaveAllowanceYearStart($settings, Carbon::now()))) {
             return (float) $user->leave_allowance;
         }
 
