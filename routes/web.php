@@ -7,6 +7,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\UserDepartmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -64,6 +65,8 @@ Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
     Route::patch('/admin/app-configuration/leave-allowance/update', [LeaveController::class, 'update_leave_allowance'])->name('admin.leave-allowance.update');
 
     Route::get('/admin/app-configuration/company-departments', [AdminRoutesController::class, 'view_company_departments'])->name('admin.view-company-departments');
+    Route::post('/admin/app-configuration/company-departments/create', [UserDepartmentController::class, 'create_company_departments'])->name('admin.company-departments.create');
+    Route::delete('/admin/app-configuration/company-departments/delete/{department}', [UserDepartmentController::class, 'delete_company_department'])->name('admin.company-departments.delete');
 });
 
 require __DIR__.'/auth.php';
