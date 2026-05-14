@@ -10,10 +10,14 @@ use Illuminate\Validation\ValidationException;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
-use App\Models\User;
+use App\Services\LeaveAllowanceService;
 
 class LeaveController extends Controller
 {
+    public function __construct(private LeaveAllowanceService $leaveAllowance)
+    {
+    }
+
     public function view()
     {
         $leaveRequests = Leave::where('user_id', Auth::id())->orderBy('start_date', 'asc')->paginate(30);
@@ -58,7 +62,7 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
-        $this->ensureLeaveRequestFitsAllowance($validated);
+        $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated);
 
         Leave::create($validated); 
 
@@ -92,7 +96,7 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
-        $this->ensureLeaveRequestFitsAllowance($validated, $leaveRequest);
+        $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated, $leaveRequest);
 
         $leaveRequest->update($validated);
 
@@ -121,10 +125,10 @@ class LeaveController extends Controller
 
         if ($request->input('response') === 'approved') {
             try {
-                $this->ensureLeaveRequestFitsAllowance(
-                    $this->leaveRequestData($leaveRequest),
-                    $leaveRequest,
+                $this->leaveAllowance->ensureLeaveRequestFitsAllowance(
                     $leaveRequest->user,
+                    $this->leaveAllowance->leaveRequestData($leaveRequest),
+                    $leaveRequest,
                     ['approved']
                 );
             } catch (ValidationException) {
@@ -202,198 +206,6 @@ class LeaveController extends Controller
                 }
             },
         ];
-    }
-
-    private function ensureLeaveRequestFitsAllowance(
-        array $leaveRequest,
-        ?Leave $ignoredLeave = null,
-        ?User $user = null,
-        array $reservedStatuses = ['approved', 'pending']
-    ): void
-    {
-        $settings = LeaveSetting::first();
-        $user ??= Auth::user();
-
-        if (! $settings?->leave_refresh_day || ! $settings?->leave_refresh_month) {
-            $requestedDays = $this->requestedLeaveDays($leaveRequest);
-            $remainingAllowance = $this->remainingLeaveAllowanceWithoutRefreshSettings($user, $reservedStatuses, $ignoredLeave);
-
-            if ($requestedDays <= $remainingAllowance) {
-                return;
-            }
-
-            throw ValidationException::withMessages([
-                'end_date' => "This request uses {$requestedDays} days, but you only have {$remainingAllowance} days remaining.",
-            ]);
-        }
-
-        $requestStart = Carbon::parse($leaveRequest['start_date'])->startOfDay();
-        $requestEnd = Carbon::parse($leaveRequest['end_date'])->startOfDay();
-        $allowanceYearStart = $this->leaveAllowanceYearStart($settings, $requestStart);
-
-        while ($allowanceYearStart->lte($requestEnd)) {
-            $allowanceYearEnd = $this->leaveRefreshDateForYear($settings, (int) $allowanceYearStart->year + 1);
-            $requestedDays = $this->requestedLeaveDaysWithinWindow(
-                $leaveRequest,
-                $allowanceYearStart,
-                $allowanceYearEnd
-            );
-
-            if ($requestedDays <= 0) {
-                $allowanceYearStart = $allowanceYearEnd;
-                continue;
-            }
-
-            $remainingAllowance = $this->remainingLeaveAllowanceForWindow(
-                $user,
-                $settings,
-                $allowanceYearStart,
-                $allowanceYearEnd,
-                $reservedStatuses,
-                $ignoredLeave
-            );
-
-            if ($requestedDays > $remainingAllowance) {
-                throw ValidationException::withMessages([
-                    'end_date' => "This request uses {$requestedDays} days in the allowance year starting {$allowanceYearStart->format('d/m/Y')}, but you only have {$remainingAllowance} days remaining for that year.",
-                ]);
-            }
-
-            $allowanceYearStart = $allowanceYearEnd;
-        }
-    }
-
-    private function remainingLeaveAllowanceWithoutRefreshSettings(User $user, array $reservedStatuses, ?Leave $ignoredLeave): float
-    {
-        $usedDaysQuery = $user->leaves()->whereIn('status', $reservedStatuses);
-
-        if ($ignoredLeave) {
-            $usedDaysQuery->where('id', '!=', $ignoredLeave->id);
-        }
-
-        $usedDays = $usedDaysQuery
-            ->get()
-            ->sum(fn (Leave $leave) => $this->requestedLeaveDays($this->leaveRequestData($leave)));
-
-        return (float) $user->leave_allowance - $usedDays;
-    }
-
-    private function remainingLeaveAllowanceForWindow(
-        User $user,
-        LeaveSetting $settings,
-        Carbon $allowanceYearStart,
-        Carbon $allowanceYearEnd,
-        array $reservedStatuses,
-        ?Leave $ignoredLeave
-    ): float
-    {
-        $allowance = $this->leaveAllowanceForDate($user, $settings, $allowanceYearStart);
-        $usedDaysQuery = $user->leaves()
-            ->whereIn('status', $reservedStatuses)
-            ->where('end_date', '>=', $allowanceYearStart->toDateString())
-            ->where('start_date', '<', $allowanceYearEnd->toDateString());
-
-        if ($ignoredLeave) {
-            $usedDaysQuery->where('id', '!=', $ignoredLeave->id);
-        }
-
-        $usedDays = $usedDaysQuery
-            ->get()
-            ->sum(function (Leave $leave) use ($allowanceYearStart, $allowanceYearEnd) {
-                return $this->requestedLeaveDaysWithinWindow(
-                    $this->leaveRequestData($leave),
-                    $allowanceYearStart,
-                    $allowanceYearEnd
-                );
-            });
-
-        return $allowance - $usedDays;
-    }
-
-    private function leaveRequestData(Leave $leave): array
-    {
-        return [
-            'start_date' => $leave->start_date,
-            'end_date' => $leave->end_date,
-            'is_half_day' => (bool) $leave->is_half_day,
-        ];
-    }
-
-    private function leaveAllowanceForDate(User $user, LeaveSetting $settings, Carbon $date): float
-    {
-        if ($date->isSameDay($this->leaveAllowanceYearStart($settings, Carbon::now()))) {
-            return (float) $user->leave_allowance;
-        }
-
-        if (! $settings->base_allowance || ! $user->employment_start_date) {
-            return (float) $user->leave_allowance;
-        }
-
-        $yearsWorked = (int) floor(Carbon::parse($user->employment_start_date)->diffInYears($date));
-
-        if ($yearsWorked < $settings->increase_after_years) {
-            return (float) $settings->base_allowance;
-        }
-
-        $extraYears = $yearsWorked - $settings->increase_after_years + 1;
-        $allowance = $settings->base_allowance + ($extraYears * $settings->increase_by_days);
-
-        return (float) min($allowance, $settings->maximum_allowance);
-    }
-
-    private function leaveAllowanceYearStart(LeaveSetting $settings, Carbon $date): Carbon
-    {
-        $refreshDate = $this->leaveRefreshDateForYear($settings, (int) $date->year);
-
-        if ($date->lt($refreshDate)) {
-            return $this->leaveRefreshDateForYear($settings, (int) $date->year - 1);
-        }
-
-        return $refreshDate;
-    }
-
-    private function leaveRefreshDateForYear(LeaveSetting $settings, int $year): Carbon
-    {
-        $month = (int) $settings->leave_refresh_month;
-        $day = min((int) $settings->leave_refresh_day, Carbon::create($year, $month, 1)->daysInMonth);
-
-        return Carbon::create($year, $month, $day)->startOfDay();
-    }
-
-    private function requestedLeaveDaysWithinWindow(array $leaveRequest, Carbon $windowStart, Carbon $windowEnd): float
-    {
-        $requestStart = Carbon::parse($leaveRequest['start_date'])->startOfDay();
-        $requestEnd = Carbon::parse($leaveRequest['end_date'])->startOfDay();
-
-        if ($requestEnd->lt($windowStart) || $requestStart->gte($windowEnd)) {
-            return 0.0;
-        }
-
-        if ($leaveRequest['is_half_day']) {
-            return 0.5;
-        }
-
-        if ($requestStart->lt($windowStart)) {
-            $requestStart = $windowStart->copy();
-        }
-
-        if ($requestEnd->gte($windowEnd)) {
-            $requestEnd = $windowEnd->copy()->subDay();
-        }
-
-        return (float) ($requestStart->diffInDays($requestEnd) + 1);
-    }
-
-    private function requestedLeaveDays(array $leaveRequest): float
-    {
-        if ($leaveRequest['is_half_day']) {
-            return 0.5;
-        }
-
-        $startDate = Carbon::parse($leaveRequest['start_date']);
-        $endDate = Carbon::parse($leaveRequest['end_date']);
-
-        return (float) ($startDate->diffInDays($endDate) + 1);
     }
 
     public function delete(Leave $leave)
