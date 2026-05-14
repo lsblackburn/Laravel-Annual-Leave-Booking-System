@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\LeaveSetting;
-use Carbon\Carbon;
+use App\Services\LeaveAllowanceService;
 
 #[Fillable(['name', 'email', 'password', 'colour', 'leave_allowance', 'employment_start_date'])]
 #[Hidden(['password', 'remember_token', 'google2fa_secret'])]
@@ -88,30 +87,7 @@ class User extends Authenticatable
 
     public function calculateLeaveAllowance(): float
     {
-        $settings = LeaveSetting::first();
-
-        if (! $settings || ! $settings->base_allowance) {
-            // If no settings are found, or base allowance is not set, return the user's leave_allowance or default to 20
-            return (float) $this->leave_allowance;
-        }
-
-        if (! $this->employment_start_date) {
-            return (float) $this->leave_allowance;
-        }
-
-        $yearsWorked = (int) floor(Carbon::parse($this->employment_start_date)->diffInYears(now()));
-
-        if ($yearsWorked < $settings->increase_after_years) { 
-            // If user hasn't reached the threshold for increase, return base allowance
-            return (float) $settings->base_allowance;
-        }
-
-        $extraYears = $yearsWorked - $settings->increase_after_years + 1;
-        // Calculate the allowance based on the base allowance and the increase for extra years, ensuring it does not exceed the maximum allowance
-
-        $allowance = $settings->base_allowance + ($extraYears * $settings->increase_by_days);
-
-        return min($allowance, $settings->maximum_allowance);
+        return app(LeaveAllowanceService::class)->calculateAllowance($this);
     }
 
     public function approvedLeaveDaysUsed(): float
@@ -131,64 +107,7 @@ class User extends Authenticatable
 
     private function leaveDaysUsedForStatus(string $status): float
     {
-        $settings = LeaveSetting::first();
-        $today = now();
-        $allowanceYearStart = $this->leaveAllowanceYearStart($settings, $today);
-        $allowanceYearEnd = $allowanceYearStart
-            ? $this->leaveRefreshDateForYear($settings, (int) $allowanceYearStart->year + 1)
-            : null;
-
-        $query = $this->leaves()->where('status', $status);
-
-        if ($allowanceYearStart && $allowanceYearEnd) {
-            $query
-                ->where('end_date', '>=', $allowanceYearStart->toDateString())
-                ->where('start_date', '<', $allowanceYearEnd->toDateString());
-        }
-
-        return $query
-            ->get()
-            ->sum(function ($leave) use ($allowanceYearStart, $allowanceYearEnd) {
-                if ($leave->is_half_day) {
-                    return 0.5;
-                }
-
-                $startDate = Carbon::parse($leave->start_date);
-                $endDate = Carbon::parse($leave->end_date);
-
-                if ($allowanceYearStart && $startDate->lt($allowanceYearStart)) {
-                    $startDate = $allowanceYearStart->copy();
-                }
-
-                if ($allowanceYearEnd && $endDate->gte($allowanceYearEnd)) {
-                    $endDate = $allowanceYearEnd->copy()->subDay();
-                }
-
-                return $startDate->diffInDays($endDate) + 1;
-            });
-    }
-
-    private function leaveAllowanceYearStart(?LeaveSetting $settings, Carbon $today): ?Carbon
-    {
-        if (! $settings?->leave_refresh_day || ! $settings?->leave_refresh_month) {
-            return null;
-        }
-
-        $refreshDate = $this->leaveRefreshDateForYear($settings, (int) $today->year);
-
-        if ($today->lt($refreshDate)) {
-            return $this->leaveRefreshDateForYear($settings, (int) $today->year - 1);
-        }
-
-        return $refreshDate;
-    }
-
-    private function leaveRefreshDateForYear(LeaveSetting $settings, int $year): Carbon
-    {
-        $month = (int) $settings->leave_refresh_month;
-        $day = min((int) $settings->leave_refresh_day, Carbon::create($year, $month, 1)->daysInMonth);
-
-        return Carbon::create($year, $month, $day)->startOfDay();
+        return app(LeaveAllowanceService::class)->leaveDaysUsedForStatus($this, $status);
     }
 
 }
