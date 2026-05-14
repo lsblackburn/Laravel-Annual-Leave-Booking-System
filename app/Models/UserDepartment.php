@@ -6,5 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserDepartment extends Model
 {
-    //
+    protected $fillable = [
+        'department',
+    ];
 }
