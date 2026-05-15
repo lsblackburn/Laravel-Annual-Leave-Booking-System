@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\NonWorkDay;
 use App\Models\User;
 use App\Models\UserDepartment;
 use App\Models\WorkDay;
@@ -601,6 +602,81 @@ class LeaveRequestAllowanceTest extends TestCase
         $response
             ->assertRedirect(route('leave.view'))
             ->assertSessionHasNoErrors();
+    }
+
+    public function test_department_coverage_is_not_required_on_inactive_work_days(): void
+    {
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $colleague = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+        WorkDay::where('day', 'Saturday')->update(['active' => false]);
+        $this->createApprovedLeave($colleague, '2026-02-14', '2026-02-14');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '14-02-2026',
+                'end_date' => '14-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-14',
+            'end_date' => '2026-02-14',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_department_coverage_is_not_required_on_configured_non_work_days(): void
+    {
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $colleague = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+        NonWorkDay::create([
+            'name' => 'Company closure',
+            'date' => '2026-02-10',
+        ]);
+        $this->createApprovedLeave($colleague, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-10',
+            'end_date' => '2026-02-10',
+            'status' => 'pending',
+        ]);
     }
 
     public function test_admin_cannot_approve_leave_when_it_would_leave_department_uncovered(): void

@@ -234,7 +234,7 @@ class LeaveAllowanceService
         }
 
         if ($leaveRequest['is_half_day']) {
-            return $this->isWorkDay($requestStart) ? 0.5 : 0.0;
+            return $this->isWorkingDate($requestStart) ? 0.5 : 0.0;
         }
 
         if ($requestStart->lt($windowStart)) {
@@ -254,7 +254,7 @@ class LeaveAllowanceService
         $endDate = Carbon::parse($leaveRequest['end_date'])->startOfDay();
 
         if ($leaveRequest['is_half_day']) {
-            return $this->isWorkDay($startDate) ? 0.5 : 0.0;
+            return $this->isWorkingDate($startDate) ? 0.5 : 0.0;
         }
 
         return $this->WorkDayBetween($startDate, $endDate);
@@ -263,11 +263,11 @@ class LeaveAllowanceService
     private function WorkDayBetween(Carbon $startDate, Carbon $endDate): float
     {
         return (float) collect(CarbonPeriod::create($startDate, $endDate))
-            ->filter(fn (Carbon $date) => $this->isWorkDay($date))
+            ->filter(fn (Carbon $date) => $this->isWorkingDate($date))
             ->count();
     }
 
-    private function isWorkDay(Carbon $date): bool
+    public function isWorkingDate(Carbon $date): bool
     {
         return in_array($date->format('l'), $this->activeWorkDayNames(), true)
             && ! in_array($date->toDateString(), $this->nonWorkDayDates(), true);

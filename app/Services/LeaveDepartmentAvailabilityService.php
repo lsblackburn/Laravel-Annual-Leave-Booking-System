@@ -10,6 +10,10 @@ use Illuminate\Validation\ValidationException;
 
 class LeaveDepartmentAvailabilityService
 {
+    public function __construct(private LeaveAllowanceService $leaveAllowance)
+    {
+    }
+
     public function ensureDepartmentHasCoverage(
         User $user,
         array $leaveRequest,
@@ -42,6 +46,10 @@ class LeaveDepartmentAvailabilityService
         $overlappingLeaves = $overlappingLeavesQuery->get();
 
         foreach (CarbonPeriod::create($requestStart, $requestEnd) as $date) {
+            if (! $this->leaveAllowance->isWorkingDate($date)) {
+                continue;
+            }
+
             $unavailableUserIds = $overlappingLeaves
                 ->filter(function (Leave $leave) use ($date) {
                     return Carbon::parse($leave->start_date)->startOfDay()->lte($date)
