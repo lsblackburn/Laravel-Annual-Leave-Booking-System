@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserDepartmentController;
+use App\Http\Controllers\NonWorkDayController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -61,6 +62,9 @@ Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
     
     Route::get('/admin/app-configuration', [AdminRoutesController::class, 'view_config'])->name('admin.view-config');
     Route::get('/admin/app-configuration/leave-rules', [AdminRoutesController::class, 'view_leave_rules'])->name('admin.view-leave-rules');
+    Route::patch('/admin/app-configuration/work-days/update', [LeaveController::class, 'update_work_days'])->name('admin.work-days.update');
+    Route::post('/admin/app-configuration/non-work-days/create', [NonWorkDayController::class, 'store'])->name('admin.non-work-days.create');
+    Route::delete('/admin/app-configuration/non-work-days/delete/{nonWorkDay}', [NonWorkDayController::class, 'destroy'])->name('admin.non-work-days.delete');
     Route::patch('/admin/app-configuration/leave-refresh/update', [LeaveController::class, 'update_leave_refresh'])->name('admin.leave-refresh.update');
     Route::patch('/admin/app-configuration/leave-allowance/update', [LeaveController::class, 'update_leave_allowance'])->name('admin.leave-allowance.update');
 

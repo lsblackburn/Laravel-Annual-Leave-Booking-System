@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Leave;
+use App\Models\NonWorkDay;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -74,6 +75,40 @@ class LeaveCalendarEventsTest extends TestCase
         $response->assertJsonFragment(['start' => '2026-04-01']);
         $response->assertJsonMissing(['start' => '2026-03-31']);
         $response->assertJsonMissing(['start' => '2026-04-30']);
+    }
+
+    public function test_calendar_events_include_non_work_days_in_visible_range(): void
+    {
+        $viewer = User::factory()->create();
+
+        NonWorkDay::create([
+            'name' => 'Early May Bank Holiday',
+            'date' => '2026-05-04',
+        ]);
+
+        NonWorkDay::create([
+            'name' => 'Outside Range Closure',
+            'date' => '2026-06-01',
+        ]);
+
+        $response = $this->actingAs($viewer)->getJson(route('leave-requests.calendar-events', [
+            'start' => '2026-05-01T00:00:00+01:00',
+            'end' => '2026-06-01T00:00:00+01:00',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'title' => 'Early May Bank Holiday - Non-work day',
+            'start' => '2026-05-04',
+            'end' => '2026-05-05',
+            'allDay' => true,
+        ]);
+        $response->assertJsonFragment([
+            'type' => 'non_work_day',
+        ]);
+        $response->assertJsonMissing([
+            'title' => 'Outside Range Closure - Non-work day',
+        ]);
     }
 
     private function createLeave(User $user, string $startDate, string $endDate, string $status = 'approved'): Leave

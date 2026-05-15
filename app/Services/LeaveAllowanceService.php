@@ -4,12 +4,18 @@ namespace App\Services;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\NonWorkDay;
 use App\Models\User;
+use App\Models\WorkDay;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Validation\ValidationException;
 
 class LeaveAllowanceService
 {
+    private ?array $activeWorkDayNames = null;
+    private ?array $nonWorkDayDates = null;
+
     public function calculateAllowance(User $user, ?LeaveSetting $settings = null, ?Carbon $date = null): float
     {
         $settings ??= LeaveSetting::first();
@@ -67,17 +73,23 @@ class LeaveAllowanceService
         array $reservedStatuses = ['approved', 'pending']
     ): void {
         $settings = LeaveSetting::first();
+        $totalRequestedDays = $this->leaveDays($leaveRequest);
+
+        if ($totalRequestedDays <= 0) {
+            throw ValidationException::withMessages([
+                'end_date' => 'This request does not include any working days.',
+            ]);
+        }
 
         if (! $settings?->leave_refresh_day || ! $settings?->leave_refresh_month) {
-            $requestedDays = $this->leaveDays($leaveRequest);
             $remainingAllowance = $this->remainingLeaveAllowanceWithoutRefreshSettings($user, $reservedStatuses, $ignoredLeave);
 
-            if ($requestedDays <= $remainingAllowance) {
+            if ($totalRequestedDays <= $remainingAllowance) {
                 return;
             }
 
             throw ValidationException::withMessages([
-                'end_date' => "This request uses {$requestedDays} days, but you only have {$remainingAllowance} days remaining.",
+                'end_date' => "This request uses {$totalRequestedDays} days, but you only have {$remainingAllowance} days remaining.",
             ]);
         }
 
@@ -228,7 +240,7 @@ class LeaveAllowanceService
         }
 
         if ($leaveRequest['is_half_day']) {
-            return 0.5;
+            return $this->isWorkingDate($requestStart) ? 0.5 : 0.0;
         }
 
         if ($requestStart->lt($windowStart)) {
@@ -239,18 +251,47 @@ class LeaveAllowanceService
             $requestEnd = $windowEnd->copy()->subDay();
         }
 
-        return (float) ($requestStart->diffInDays($requestEnd) + 1);
+        return $this->WorkDayBetween($requestStart, $requestEnd);
     }
 
     private function leaveDays(array $leaveRequest): float
     {
+        $startDate = Carbon::parse($leaveRequest['start_date'])->startOfDay();
+        $endDate = Carbon::parse($leaveRequest['end_date'])->startOfDay();
+
         if ($leaveRequest['is_half_day']) {
-            return 0.5;
+            return $this->isWorkingDate($startDate) ? 0.5 : 0.0;
         }
 
-        $startDate = Carbon::parse($leaveRequest['start_date']);
-        $endDate = Carbon::parse($leaveRequest['end_date']);
+        return $this->WorkDayBetween($startDate, $endDate);
+    }
 
-        return (float) ($startDate->diffInDays($endDate) + 1);
+    private function WorkDayBetween(Carbon $startDate, Carbon $endDate): float
+    {
+        return (float) collect(CarbonPeriod::create($startDate, $endDate))
+            ->filter(fn (Carbon $date) => $this->isWorkingDate($date))
+            ->count();
+    }
+
+    public function isWorkingDate(Carbon $date): bool
+    {
+        return in_array($date->format('l'), $this->activeWorkDayNames(), true)
+            && ! in_array($date->toDateString(), $this->nonWorkDayDates(), true);
+    }
+
+    private function activeWorkDayNames(): array
+    {
+        return $this->activeWorkDayNames ??= WorkDay::query()
+            ->where('active', true)
+            ->pluck('day')
+            ->all();
+    }
+
+    private function nonWorkDayDates(): array
+    {
+        return $this->nonWorkDayDates ??= NonWorkDay::query()
+            ->pluck('date')
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->all();
     }
 }
