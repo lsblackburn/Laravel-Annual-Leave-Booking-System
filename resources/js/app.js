@@ -68,6 +68,7 @@ yesterday.setDate(yesterday.getDate() - 1);
 initialiseLeaveDatepicker('#start_date');
 initialiseLeaveDatepicker('#end_date');
 initialiseLeaveDatepicker('#employment_start_date', { maxDate: yesterday });
+initialiseLeaveDatepicker('#date');
 
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('dashboard-calendar');
