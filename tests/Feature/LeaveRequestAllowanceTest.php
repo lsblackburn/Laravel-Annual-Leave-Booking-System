@@ -6,7 +6,7 @@ use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
 use App\Models\UserDepartment;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -86,7 +86,7 @@ class LeaveRequestAllowanceTest extends TestCase
     {
         $user = User::factory()->create(['leave_allowance' => 1]);
         $this->setCalendarYearRefresh();
-        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
 
         $response = $this->actingAs($user)
             ->from(route('leave.form'))
@@ -113,7 +113,7 @@ class LeaveRequestAllowanceTest extends TestCase
     {
         $user = User::factory()->create(['leave_allowance' => 1]);
         $this->setCalendarYearRefresh();
-        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
 
         $response = $this->actingAs($user)
             ->from(route('leave.form'))

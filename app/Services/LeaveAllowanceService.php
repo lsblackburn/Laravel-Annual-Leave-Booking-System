@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Validation\ValidationException;
@@ -243,7 +243,7 @@ class LeaveAllowanceService
             $requestEnd = $windowEnd->copy()->subDay();
         }
 
-        return $this->workDaysBetween($requestStart, $requestEnd);
+        return $this->WorkDayBetween($requestStart, $requestEnd);
     }
 
     private function leaveDays(array $leaveRequest): float
@@ -255,10 +255,10 @@ class LeaveAllowanceService
             return $this->isWorkDay($startDate) ? 0.5 : 0.0;
         }
 
-        return $this->workDaysBetween($startDate, $endDate);
+        return $this->WorkDayBetween($startDate, $endDate);
     }
 
-    private function workDaysBetween(Carbon $startDate, Carbon $endDate): float
+    private function WorkDayBetween(Carbon $startDate, Carbon $endDate): float
     {
         return (float) collect(CarbonPeriod::create($startDate, $endDate))
             ->filter(fn (Carbon $date) => $this->isWorkDay($date))
@@ -272,7 +272,7 @@ class LeaveAllowanceService
 
     private function activeWorkDayNames(): array
     {
-        return $this->activeWorkDayNames ??= WorkDays::query()
+        return $this->activeWorkDayNames ??= WorkDay::query()
             ->where('active', true)
             ->pluck('day')
             ->all();

@@ -3,19 +3,19 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class WorkDaysSettingsTest extends TestCase
+class WorkDaySettingsTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_admin_can_update_working_days(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        $monday = WorkDays::where('day', 'Monday')->firstOrFail();
-        $wednesday = WorkDays::where('day', 'Wednesday')->firstOrFail();
+        $monday = WorkDay::where('day', 'Monday')->firstOrFail();
+        $wednesday = WorkDay::where('day', 'Wednesday')->firstOrFail();
 
         $response = $this
             ->actingAs($admin)
@@ -27,7 +27,7 @@ class WorkDaysSettingsTest extends TestCase
 
         $this->assertTrue($monday->refresh()->active);
         $this->assertTrue($wednesday->refresh()->active);
-        $this->assertFalse(WorkDays::where('day', 'Tuesday')->firstOrFail()->active);
+        $this->assertFalse(WorkDay::where('day', 'Tuesday')->firstOrFail()->active);
     }
 
     public function test_admin_must_select_at_least_one_working_day(): void

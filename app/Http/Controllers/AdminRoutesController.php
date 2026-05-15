@@ -8,7 +8,7 @@ use App\Models\Leave;
 use App\Models\User;
 use App\Models\LeaveSetting;
 use App\Models\UserDepartment;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 
 class AdminRoutesController extends Controller
 {
@@ -63,7 +63,7 @@ class AdminRoutesController extends Controller
 
     public function view_leave_rules() {
         $settings = LeaveSetting::first();
-        $workDays = WorkDays::query()
+        $WorkDay = WorkDay::query()
             ->orderByRaw("CASE day
                 WHEN 'Monday' THEN 1
                 WHEN 'Tuesday' THEN 2
@@ -75,13 +75,13 @@ class AdminRoutesController extends Controller
                 ELSE 8
             END")
             ->get();
-        $selectedWorkDayIds = $workDays
+        $selectedWorkDayIds = $WorkDay
             ->where('active', true)
             ->pluck('id')
             ->map(fn ($id) => (string) $id)
             ->all();
 
-        return view('admin.config.leave-rules', compact('settings', 'workDays', 'selectedWorkDayIds'));
+        return view('admin.config.leave-rules', compact('settings', 'WorkDay', 'selectedWorkDayIds'));
     }
 
     public function view_company_departments() {

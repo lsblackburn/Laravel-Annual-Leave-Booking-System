@@ -4,10 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WorkDays extends Model
+class WorkDay extends Model
 {
-    protected $table = 'work_days';
-
     protected $fillable = [
         'active',
     ];

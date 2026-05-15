@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -81,7 +81,7 @@ class UserLeaveAllowanceTest extends TestCase
             'leave_refresh_day' => 1,
             'leave_refresh_month' => 1,
         ]);
-        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
 
         $user = User::factory()->create(['leave_allowance' => 20]);
 
@@ -98,7 +98,7 @@ class UserLeaveAllowanceTest extends TestCase
             'leave_refresh_day' => 1,
             'leave_refresh_month' => 1,
         ]);
-        WorkDays::where('day', 'Saturday')->update(['active' => false]);
+        WorkDay::where('day', 'Saturday')->update(['active' => false]);
 
         $user = User::factory()->create(['leave_allowance' => 20]);
 

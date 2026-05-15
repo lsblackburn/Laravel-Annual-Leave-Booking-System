@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
-use App\Models\WorkDays;
+use App\Models\WorkDay;
 use App\Services\LeaveAllowanceService;
 use App\Services\LeaveDepartmentAvailabilityService;
 
@@ -312,8 +312,8 @@ class LeaveController extends Controller
 
         $activeWorkDayIds = collect($validated['work_days'])->map(fn ($id) => (int) $id);
 
-        WorkDays::query()->update(['active' => false]);
-        WorkDays::query()
+        WorkDay::query()->update(['active' => false]);
+        WorkDay::query()
             ->whereIn('id', $activeWorkDayIds)
             ->update(['active' => true]);
 
