@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('non_work_days', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->date('date');
+            $table->date('date')->unique();
             $table->timestamps();
         });
     }
