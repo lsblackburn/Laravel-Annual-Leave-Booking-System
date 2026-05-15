@@ -22,8 +22,8 @@
                 </div>
 
                 <div class="mt-4">
-                    <x-input-label for="date" :value="__('Date')" />
-                    <x-text-input id="date" class="block mt-1 w-full" type="text" :value="old('date')"
+                    <x-input-label for="non_work_day_date" :value="__('Date')" />
+                    <x-text-input id="non_work_day_date" class="block mt-1 w-full" type="text" :value="old('date')"
                         name="date" autofocus />
                     <x-input-error :messages="$errors->get('date')" class="mt-2" />
                 </div>

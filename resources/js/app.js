@@ -38,7 +38,8 @@ function initialiseLeaveDatepicker(selector, options = {}) {
         return;
     }
 
-    const fallbackSelectedDate = !('maxDate' in options) ? new Date() : null;
+    const { allowPastDates = false, ...datepickerOverrides } = options;
+    const fallbackSelectedDate = !('maxDate' in datepickerOverrides) ? new Date() : null;
     const selectedDate = leaveDateFromInputValue(input.value, fallbackSelectedDate);
     const datepickerOptions = {
         autoClose: true,
@@ -48,14 +49,14 @@ function initialiseLeaveDatepicker(selector, options = {}) {
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
         },
-        ...options,
+        ...datepickerOverrides,
     };
 
     if (selectedDate) {
         datepickerOptions.selectedDates = [selectedDate];
     }
 
-    if (!('minDate' in datepickerOptions) && !('maxDate' in datepickerOptions)) {
+    if (!allowPastDates && !('minDate' in datepickerOptions) && !('maxDate' in datepickerOptions)) {
         datepickerOptions.minDate = new Date();
     }
 
@@ -68,7 +69,7 @@ yesterday.setDate(yesterday.getDate() - 1);
 initialiseLeaveDatepicker('#start_date');
 initialiseLeaveDatepicker('#end_date');
 initialiseLeaveDatepicker('#employment_start_date', { maxDate: yesterday });
-initialiseLeaveDatepicker('#date');
+initialiseLeaveDatepicker('#non_work_day_date', { allowPastDates: true });
 
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('dashboard-calendar');
