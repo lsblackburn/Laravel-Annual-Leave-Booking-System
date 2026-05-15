@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\NonWorkDay;
 use App\Models\WorkDay;
 use App\Services\LeaveAllowanceService;
 use App\Services\LeaveDepartmentAvailabilityService;
@@ -180,7 +181,18 @@ class LeaveController extends Controller
             $query->where('start_date', '<', $endDate);
         }
 
+        $nonWorkDayQuery = NonWorkDay::query();
+
+        if ($startDate !== null) {
+            $nonWorkDayQuery->whereDate('date', '>=', $startDate);
+        }
+
+        if ($endDate !== null) {
+            $nonWorkDayQuery->whereDate('date', '<', $endDate);
+        }
+
         $leaves = $query->get();
+        $nonWorkDays = $nonWorkDayQuery->get();
 
         $events = $leaves->map(function ($leave) {
             return [
@@ -190,7 +202,24 @@ class LeaveController extends Controller
                 'allDay' => true,
                 'backgroundColor' => $leave->user->colour,
             ];
-        });
+        })->toBase();
+
+        $nonWorkDayEvents = $nonWorkDays->map(function ($nonWorkDay) {
+            return [
+                'title' => $nonWorkDay->name . ' - Non-work day',
+                'start' => $nonWorkDay->date,
+                'end' => Carbon::parse($nonWorkDay->date)->addDay()->toDateString(),
+                'allDay' => true,
+                'backgroundColor' => '#6b7280',
+                'borderColor' => '#4b5563',
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'type' => 'non_work_day',
+                ],
+            ];
+        })->toBase();
+
+        $events = $events->merge($nonWorkDayEvents)->values();
 
         return response()->json($events);
     }
