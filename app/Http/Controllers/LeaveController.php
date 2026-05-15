@@ -11,11 +11,12 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Services\LeaveAllowanceService;
+use App\Services\LeaveDepartmentAvailabilityService;
 
 class LeaveController extends Controller
 {
-    public function __construct(private LeaveAllowanceService $leaveAllowance)
-    {
+    public function __construct(private LeaveAllowanceService $leaveAllowance, private LeaveDepartmentAvailabilityService $departmentAvailability
+    ) {
     }
 
     public function view()
@@ -63,6 +64,7 @@ class LeaveController extends Controller
         }
 
         $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated);
+        $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated);
 
         Leave::create($validated); 
 
@@ -97,6 +99,7 @@ class LeaveController extends Controller
         }
 
         $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated, $leaveRequest);
+        $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated, $leaveRequest);
 
         $leaveRequest->update($validated);
 
@@ -133,6 +136,17 @@ class LeaveController extends Controller
                 );
             } catch (ValidationException) {
                 return redirect()->route('admin.leave-requests')->with('error', 'This leave request would exceed the employee\'s remaining allowance.');
+            }
+
+            try {
+                $this->departmentAvailability->ensureDepartmentHasCoverage(
+                    $leaveRequest->user,
+                    $this->leaveAllowance->leaveRequestData($leaveRequest),
+                    $leaveRequest,
+                    ['approved']
+                );
+            } catch (ValidationException) {
+                return redirect()->route('admin.leave-requests')->with('error', 'This leave request would leave the employee\'s department without cover.');
             }
         }
 
