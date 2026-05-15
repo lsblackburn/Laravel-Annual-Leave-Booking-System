@@ -10,6 +10,7 @@ use App\Models\LeaveSetting;
 use App\Models\UserDepartment;
 use App\Models\WorkDay;
 use App\Models\NonWorkDay;
+use App\Services\LeaveAllowanceService;
 use Carbon\Carbon;
 
 class AdminRoutesController extends Controller
@@ -63,11 +64,13 @@ class AdminRoutesController extends Controller
         return view('admin.app-config');
     }
 
-    public function view_leave_rules() {
+    public function view_leave_rules(LeaveAllowanceService $allowanceService) {
         $settings = LeaveSetting::first();
+        $oldestVisibleNonWorkDay = $allowanceService->allowanceYearStart($settings, Carbon::today())
+            ?? Carbon::today();
 
         $nonWorkDay = NonWorkDay::query()
-            ->whereDate('date', '>=', Carbon::today()->toDateString())
+            ->whereDate('date', '>=', $oldestVisibleNonWorkDay->toDateString())
             ->orderBy('date', 'asc')
             ->get();
 
