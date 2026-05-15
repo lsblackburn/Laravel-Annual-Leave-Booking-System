@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Models\UserDepartment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -25,6 +26,7 @@ class RegistrationTest extends TestCase
     public function test_admin_can_create_new_users(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $department = UserDepartment::create(['department' => 'Finance']);
 
         $response = $this
             ->actingAs($admin)
@@ -34,11 +36,13 @@ class RegistrationTest extends TestCase
                 'password' => 'password',
                 'password_confirmation' => 'password',
                 'employment_start_date' => now()->subYear()->format('d-m-Y'),
+                'department_id' => $department->id,
             ]);
 
         $createdUser = User::where('email', 'test@example.com')->first();
 
         $this->assertNotNull($createdUser);
+        $this->assertSame($department->id, $createdUser->department_id);
         $this->assertTrue(Hash::check('password', $createdUser->password));
         $this->assertAuthenticatedAs($admin);
         $response->assertRedirect(route('admin.users', absolute: false));

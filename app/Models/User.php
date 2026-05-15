@@ -7,12 +7,13 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Services\LeaveAllowanceService;
 
-#[Fillable(['name', 'email', 'password', 'colour', 'leave_allowance', 'employment_start_date'])]
+#[Fillable(['name', 'email', 'password', 'colour', 'leave_allowance', 'employment_start_date', 'department_id'])]
 #[Hidden(['password', 'remember_token', 'google2fa_secret'])]
 class User extends Authenticatable
 {
@@ -83,6 +84,11 @@ class User extends Authenticatable
     public function leaves(): HasMany
     {
         return $this->hasMany(Leave::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(UserDepartment::class, 'department_id');
     }
 
     public function calculateLeaveAllowance(): float

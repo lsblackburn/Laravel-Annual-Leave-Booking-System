@@ -33,6 +33,14 @@
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
         </div>
 
+        <div>
+            <x-input-label for="department_id" :value="__('Department')" />
+            <x-select-dropdown id="department_id" name="department_id" class="mt-1 block w-full"
+                :options="$departments" :value="old('department_id', $user->department_id)"
+                :placeholder="__('Select a department')" />
+            <x-input-error class="mt-2" :messages="$errors->get('department_id')" />
+        </div>
+
         <div class="mt-4">
             <x-input-label for="employment_start_date" :value="__('Employment Start Date')" />
             <x-text-input id="employment_start_date" class="block mt-1 w-full" :value="old('employment_start_date', $employment_start_date)" type="text"

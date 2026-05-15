@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Leave;
 use App\Models\User;
 use App\Models\LeaveSetting;
+use App\Models\UserDepartment;
 
 class AdminRoutesController extends Controller
 {
@@ -39,13 +40,18 @@ class AdminRoutesController extends Controller
 
         $user = User::findOrFail($user->id);
 
-        return view('admin.edit-user', compact('user'));
+        $departments = UserDepartment::orderBy('department', 'asc')->get();
+
+        return view('admin.edit-user', compact('user', 'departments'));
     }
 
     public function register_user()
     {
+        $departments = UserDepartment::orderBy('department', 'asc')->get();
+
         return view('auth.register', [
             'suggestedColour' => User::generateUniqueColour(),
+            'departments' => $departments,
         ]);
     }
 
@@ -57,8 +63,12 @@ class AdminRoutesController extends Controller
     public function view_leave_rules() {
         $settings = LeaveSetting::first();
 
-        return view('admin.leave-rules', compact('settings'));
-
+        return view('admin.config.leave-rules', compact('settings'));
     }
 
+    public function view_company_departments() {
+        $departments = UserDepartment::orderBy('department', 'asc')->paginate(30);
+
+        return view('admin.config.company-departments', compact('departments'));
+    }
 }

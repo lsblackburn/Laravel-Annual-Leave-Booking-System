@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
+use App\Models\UserDepartment;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -450,6 +451,130 @@ class LeaveRequestAllowanceTest extends TestCase
             ->assertSessionHas('error', 'This leave request would exceed the employee\'s remaining allowance.');
 
         $this->assertSame('pending', $secondPendingLeave->refresh()->status);
+    }
+
+    public function test_user_cannot_create_leave_when_it_would_leave_department_uncovered(): void
+    {
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $colleague = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+        $this->createApprovedLeave($colleague, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-10',
+            'end_date' => '2026-02-10',
+        ]);
+    }
+
+    public function test_single_person_department_can_request_leave(): void
+    {
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-10',
+            'end_date' => '2026-02-10',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_department_leave_is_allowed_when_another_department_member_remains_available(): void
+    {
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $awayColleague = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+        $this->createApprovedLeave($awayColleague, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_admin_cannot_approve_leave_when_it_would_leave_department_uncovered(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $department = UserDepartment::create(['department' => 'Finance']);
+        $user = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $colleague = User::factory()->create([
+            'department_id' => $department->id,
+            'leave_allowance' => 20,
+        ]);
+        $this->setCalendarYearRefresh();
+        $pendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+        $this->createApprovedLeave($colleague, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $pendingLeave), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('error', 'This leave request would leave the employee\'s department without cover.');
+
+        $this->assertSame('pending', $pendingLeave->refresh()->status);
     }
 
     private function setCalendarYearRefresh(): void

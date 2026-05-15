@@ -6,6 +6,11 @@
                 'description' => 'Allowance refresh date, base allowance, yearly increases, and maximum allowance.',
                 'href' => route('admin.view-leave-rules'),
             ],
+            [
+                'label' => 'Company departments',
+                'description' => 'Manage company departments which can be assigned to users',
+                'href' => route('admin.view-company-departments'),
+            ],
         ];
     @endphp
 
