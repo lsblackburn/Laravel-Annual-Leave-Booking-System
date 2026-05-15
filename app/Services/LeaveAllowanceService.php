@@ -5,11 +5,15 @@ namespace App\Services;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
+use App\Models\WorkDays;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Validation\ValidationException;
 
 class LeaveAllowanceService
 {
+    private ?array $activeWorkDayNames = null;
+
     public function calculateAllowance(User $user, ?LeaveSetting $settings = null, ?Carbon $date = null): float
     {
         $settings ??= LeaveSetting::first();
@@ -228,7 +232,7 @@ class LeaveAllowanceService
         }
 
         if ($leaveRequest['is_half_day']) {
-            return 0.5;
+            return $this->isWorkDay($requestStart) ? 0.5 : 0.0;
         }
 
         if ($requestStart->lt($windowStart)) {
@@ -239,18 +243,38 @@ class LeaveAllowanceService
             $requestEnd = $windowEnd->copy()->subDay();
         }
 
-        return (float) ($requestStart->diffInDays($requestEnd) + 1);
+        return $this->workDaysBetween($requestStart, $requestEnd);
     }
 
     private function leaveDays(array $leaveRequest): float
     {
+        $startDate = Carbon::parse($leaveRequest['start_date'])->startOfDay();
+        $endDate = Carbon::parse($leaveRequest['end_date'])->startOfDay();
+
         if ($leaveRequest['is_half_day']) {
-            return 0.5;
+            return $this->isWorkDay($startDate) ? 0.5 : 0.0;
         }
 
-        $startDate = Carbon::parse($leaveRequest['start_date']);
-        $endDate = Carbon::parse($leaveRequest['end_date']);
+        return $this->workDaysBetween($startDate, $endDate);
+    }
 
-        return (float) ($startDate->diffInDays($endDate) + 1);
+    private function workDaysBetween(Carbon $startDate, Carbon $endDate): float
+    {
+        return (float) collect(CarbonPeriod::create($startDate, $endDate))
+            ->filter(fn (Carbon $date) => $this->isWorkDay($date))
+            ->count();
+    }
+
+    private function isWorkDay(Carbon $date): bool
+    {
+        return in_array($date->format('l'), $this->activeWorkDayNames(), true);
+    }
+
+    private function activeWorkDayNames(): array
+    {
+        return $this->activeWorkDayNames ??= WorkDays::query()
+            ->where('active', true)
+            ->pluck('day')
+            ->all();
     }
 }

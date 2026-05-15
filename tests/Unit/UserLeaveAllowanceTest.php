@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
+use App\Models\WorkDays;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -71,6 +72,40 @@ class UserLeaveAllowanceTest extends TestCase
 
         $this->assertSame(2.0, $user->approvedLeaveDaysUsed());
         $this->assertSame(18.0, $user->remainingLeaveAllowance());
+    }
+
+    public function test_leave_usage_only_counts_configured_working_days(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-06'));
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 1,
+        ]);
+        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+
+        $user = User::factory()->create(['leave_allowance' => 20]);
+
+        $this->createLeave($user, '2026-02-13', '2026-02-16', 'approved');
+
+        $this->assertSame(2.0, $user->approvedLeaveDaysUsed());
+        $this->assertSame(18.0, $user->remainingLeaveAllowance());
+    }
+
+    public function test_half_day_leave_on_non_working_day_does_not_use_allowance(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-06'));
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 1,
+        ]);
+        WorkDays::where('day', 'Saturday')->update(['active' => false]);
+
+        $user = User::factory()->create(['leave_allowance' => 20]);
+
+        $this->createLeave($user, '2026-02-14', '2026-02-14', 'approved', true);
+
+        $this->assertSame(0.0, $user->approvedLeaveDaysUsed());
+        $this->assertSame(20.0, $user->remainingLeaveAllowance());
     }
 
     public function test_february_twenty_ninth_allowance_year_ends_on_february_twenty_eighth_in_non_leap_year(): void

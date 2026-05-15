@@ -6,6 +6,7 @@ use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\User;
 use App\Models\UserDepartment;
+use App\Models\WorkDays;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -78,6 +79,59 @@ class LeaveRequestAllowanceTest extends TestCase
             'start_date' => '2026-02-10',
             'end_date' => '2026-02-10',
             'status' => 'pending',
+        ]);
+    }
+
+    public function test_non_working_days_do_not_count_against_request_allowance_validation(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $this->setCalendarYearRefresh();
+        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '13-02-2026',
+                'end_date' => '15-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-13',
+            'end_date' => '2026-02-15',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_request_is_rejected_when_working_days_exceed_remaining_allowance(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $this->setCalendarYearRefresh();
+        WorkDays::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '13-02-2026',
+                'end_date' => '16-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-13',
+            'end_date' => '2026-02-16',
         ]);
     }
 
