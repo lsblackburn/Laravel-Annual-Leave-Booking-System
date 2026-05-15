@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\NonWorkDay;
 use App\Models\User;
 use App\Models\WorkDay;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 class LeaveAllowanceService
 {
     private ?array $activeWorkDayNames = null;
+    private ?array $nonWorkDayDates = null;
 
     public function calculateAllowance(User $user, ?LeaveSetting $settings = null, ?Carbon $date = null): float
     {
@@ -267,7 +269,8 @@ class LeaveAllowanceService
 
     private function isWorkDay(Carbon $date): bool
     {
-        return in_array($date->format('l'), $this->activeWorkDayNames(), true);
+        return in_array($date->format('l'), $this->activeWorkDayNames(), true)
+            && ! in_array($date->toDateString(), $this->nonWorkDayDates(), true);
     }
 
     private function activeWorkDayNames(): array
@@ -275,6 +278,14 @@ class LeaveAllowanceService
         return $this->activeWorkDayNames ??= WorkDay::query()
             ->where('active', true)
             ->pluck('day')
+            ->all();
+    }
+
+    private function nonWorkDayDates(): array
+    {
+        return $this->nonWorkDayDates ??= NonWorkDay::query()
+            ->pluck('date')
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->all();
     }
 }
