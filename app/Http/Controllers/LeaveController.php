@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\WorkDays;
 use App\Services\LeaveAllowanceService;
 use App\Services\LeaveDepartmentAvailabilityService;
 
@@ -296,6 +297,27 @@ class LeaveController extends Controller
         $leave->update($validated);
 
         return redirect()->route('admin.view-leave-rules')->with('success', 'Leave allowance settings have updated successfully.');
+    }
+
+    public function update_work_days(Request $request)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorised action.');
+        }
+
+        $validated = $request->validate([
+            'work_days' => ['required', 'array', 'min:1'],
+            'work_days.*' => ['integer', 'exists:work_days,id'],
+        ]);
+
+        $activeWorkDayIds = collect($validated['work_days'])->map(fn ($id) => (int) $id);
+
+        WorkDays::query()->update(['active' => false]);
+        WorkDays::query()
+            ->whereIn('id', $activeWorkDayIds)
+            ->update(['active' => true]);
+
+        return redirect()->route('admin.view-leave-rules')->with('success', 'Working days updated successfully.');
     }
 
 }
