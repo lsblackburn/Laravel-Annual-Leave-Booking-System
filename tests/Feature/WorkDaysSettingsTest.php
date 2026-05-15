@@ -72,7 +72,7 @@ class WorkDaysSettingsTest extends TestCase
         $this->assertSame(1, NonWorkDay::whereDate('date', '2026-05-15')->count());
     }
 
-    public function test_non_work_days_list_only_shows_current_allowance_year_dates(): void
+    public function test_non_work_days_list_only_shows_future_dates(): void
     {
         $this->travelTo('2026-05-15');
 
@@ -84,18 +84,18 @@ class WorkDaysSettingsTest extends TestCase
         ]);
 
         NonWorkDay::create([
-            'name' => 'Previous allowance year closure',
-            'date' => '2026-03-31',
+            'name' => 'Past closure',
+            'date' => '2026-05-14',
         ]);
 
         NonWorkDay::create([
-            'name' => 'Current allowance year closure',
-            'date' => '2026-04-01',
+            'name' => 'Today closure',
+            'date' => '2026-05-15',
         ]);
 
         NonWorkDay::create([
-            'name' => 'Final current allowance year closure',
-            'date' => '2027-03-31',
+            'name' => 'Future closure',
+            'date' => '2026-05-16',
         ]);
 
         NonWorkDay::create([
@@ -109,9 +109,9 @@ class WorkDaysSettingsTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Current allowance year closure')
-            ->assertSee('Final current allowance year closure')
-            ->assertDontSee('Previous allowance year closure')
-            ->assertDontSee('Next allowance year closure');
+            ->assertSee('Today closure')
+            ->assertSee('Future closure')
+            ->assertSee('Next allowance year closure')
+            ->assertDontSee('Past closure');
     }
 }
