@@ -17,7 +17,7 @@
             <legend class="sr-only">{{ __('Working days') }}</legend>
 
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                @foreach ($WorkDay as $workDay)
+                @foreach ($workDay as $workDay)
                     <label for="work_day_{{ $workDay->id }}"
                         class="group relative flex min-h-12 cursor-pointer items-center justify-center rounded-md px-4 py-3 text-sm font-semibold transition focus-within:ring-2 focus-within:ring-[--color-primary] focus-within:ring-offset-2">
                         <input id="work_day_{{ $workDay->id }}" type="checkbox" name="work_days[]"
