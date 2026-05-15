@@ -40,13 +40,18 @@ class AdminRoutesController extends Controller
 
         $user = User::findOrFail($user->id);
 
-        return view('admin.edit-user', compact('user'));
+        $departments = UserDepartment::orderBy('department', 'asc')->get();
+
+        return view('admin.edit-user', compact('user', 'departments'));
     }
 
     public function register_user()
     {
+        $departments = UserDepartment::orderBy('department', 'asc')->get();
+
         return view('auth.register', [
             'suggestedColour' => User::generateUniqueColour(),
+            'departments' => $departments,
         ]);
     }
 

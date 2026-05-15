@@ -46,6 +46,13 @@
         </div>
 
         <div class="mt-4">
+            <x-input-label for="department_id" :value="__('Department')" />
+            <x-select-dropdown id="department_id" name="department_id" class="block mt-1 w-full"
+                :options="$departments" :value="old('department_id')" :placeholder="__('Select a department')" />
+            <x-input-error :messages="$errors->get('department_id')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
             <x-input-label for="colour" :value="__('Colour* (Unique Profile Colour)')" />
 
             <x-text-input id="colour" class="block mt-1 w-full" type="color" name="colour" :value="old('colour', $suggestedColour)"

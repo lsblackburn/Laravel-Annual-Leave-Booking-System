@@ -51,6 +51,14 @@
         </div>
 
         @if (auth()->user()->isAdmin())
+            <div>
+                <x-input-label for="department_id" :value="__('Department')" />
+                <x-select-dropdown id="department_id" name="department_id" class="mt-1 block w-full"
+                    :options="$departments" :value="old('department_id', $user->department_id)"
+                    :placeholder="__('Select a department')" />
+                <x-input-error class="mt-2" :messages="$errors->get('department_id')" />
+            </div>
+
             @php
                 $employment_start_date = $user->employment_start_date
                     ? \Carbon\Carbon::parse($user->employment_start_date)->format('d-m-Y')

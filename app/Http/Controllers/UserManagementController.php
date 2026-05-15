@@ -47,7 +47,7 @@ class UserManagementController extends Controller
 
         $user->save();
 
-        return redirect()->back()->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users')->with('success', 'User updated successfully.');
     }
 
 }

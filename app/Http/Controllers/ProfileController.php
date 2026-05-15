@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use App\Models\User;
+use App\Models\UserDepartment;
 
 class ProfileController extends Controller
 {
@@ -17,8 +18,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+
+        $departments = UserDepartment::orderBy('department', 'asc')->get();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'departments' => $departments,
         ]);
     }
 

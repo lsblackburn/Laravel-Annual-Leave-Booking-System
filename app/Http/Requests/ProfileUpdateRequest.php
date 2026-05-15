@@ -46,10 +46,18 @@ class ProfileUpdateRequest extends FormRequest
             ],
 
             'employment_start_date' => $employmentStartDateRules,
+            'department_id' => $this->canUpdateAdminManagedFields()
+                ? ['sometimes', 'nullable', 'integer', Rule::exists('user_departments', 'id')]
+                : ['prohibited'],
         ];
     }
 
     private function canUpdateEmploymentStartDate(): bool
+    {
+        return $this->canUpdateAdminManagedFields();
+    }
+
+    private function canUpdateAdminManagedFields(): bool
     {
         return $this->route('user') instanceof User || $this->user()?->isAdmin();
     }
