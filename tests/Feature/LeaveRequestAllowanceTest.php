@@ -136,6 +136,59 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_create_leave_request_containing_only_inactive_work_days(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $this->setCalendarYearRefresh();
+        WorkDay::where('day', 'Saturday')->update(['active' => false]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '14-02-2026',
+                'end_date' => '14-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-14',
+        ]);
+    }
+
+    public function test_user_cannot_create_leave_request_containing_only_configured_non_work_days(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $this->setCalendarYearRefresh();
+        NonWorkDay::create([
+            'name' => 'Company closure',
+            'date' => '2026-02-10',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('end_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-10',
+        ]);
+    }
+
     public function test_user_cannot_create_leave_request_starting_in_the_past(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-14'));
@@ -622,7 +675,7 @@ class LeaveRequestAllowanceTest extends TestCase
         $response = $this->actingAs($user)
             ->from(route('leave.form'))
             ->post(route('leave.create'), [
-                'start_date' => '14-02-2026',
+                'start_date' => '13-02-2026',
                 'end_date' => '14-02-2026',
                 'is_half_day' => '0',
                 'reason' => 'Annual leave',
@@ -634,7 +687,7 @@ class LeaveRequestAllowanceTest extends TestCase
 
         $this->assertDatabaseHas('leaves', [
             'user_id' => $user->id,
-            'start_date' => '2026-02-14',
+            'start_date' => '2026-02-13',
             'end_date' => '2026-02-14',
             'status' => 'pending',
         ]);
@@ -662,7 +715,7 @@ class LeaveRequestAllowanceTest extends TestCase
             ->from(route('leave.form'))
             ->post(route('leave.create'), [
                 'start_date' => '10-02-2026',
-                'end_date' => '10-02-2026',
+                'end_date' => '11-02-2026',
                 'is_half_day' => '0',
                 'reason' => 'Annual leave',
             ]);
@@ -674,7 +727,7 @@ class LeaveRequestAllowanceTest extends TestCase
         $this->assertDatabaseHas('leaves', [
             'user_id' => $user->id,
             'start_date' => '2026-02-10',
-            'end_date' => '2026-02-10',
+            'end_date' => '2026-02-11',
             'status' => 'pending',
         ]);
     }

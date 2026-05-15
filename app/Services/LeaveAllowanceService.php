@@ -73,17 +73,23 @@ class LeaveAllowanceService
         array $reservedStatuses = ['approved', 'pending']
     ): void {
         $settings = LeaveSetting::first();
+        $totalRequestedDays = $this->leaveDays($leaveRequest);
+
+        if ($totalRequestedDays <= 0) {
+            throw ValidationException::withMessages([
+                'end_date' => 'This request does not include any working days.',
+            ]);
+        }
 
         if (! $settings?->leave_refresh_day || ! $settings?->leave_refresh_month) {
-            $requestedDays = $this->leaveDays($leaveRequest);
             $remainingAllowance = $this->remainingLeaveAllowanceWithoutRefreshSettings($user, $reservedStatuses, $ignoredLeave);
 
-            if ($requestedDays <= $remainingAllowance) {
+            if ($totalRequestedDays <= $remainingAllowance) {
                 return;
             }
 
             throw ValidationException::withMessages([
-                'end_date' => "This request uses {$requestedDays} days, but you only have {$remainingAllowance} days remaining.",
+                'end_date' => "This request uses {$totalRequestedDays} days, but you only have {$remainingAllowance} days remaining.",
             ]);
         }
 
