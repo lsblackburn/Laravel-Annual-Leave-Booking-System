@@ -9,6 +9,9 @@ use App\Models\User;
 use App\Models\LeaveSetting;
 use App\Models\UserDepartment;
 use App\Models\WorkDay;
+use App\Models\NonWorkDay;
+use App\Services\LeaveAllowanceService;
+use Carbon\Carbon;
 
 class AdminRoutesController extends Controller
 {
@@ -61,9 +64,27 @@ class AdminRoutesController extends Controller
         return view('admin.app-config');
     }
 
-    public function view_leave_rules() {
+    public function view_leave_rules(LeaveAllowanceService $allowanceService) {
         $settings = LeaveSetting::first();
-        $WorkDay = WorkDay::query()
+
+        $nonWorkDayQuery = NonWorkDay::query()->orderBy('date', 'asc');
+
+        $allowanceYearStart = $allowanceService->allowanceYearStart($settings, Carbon::now());
+
+        if ($settings && $allowanceYearStart) {
+            $allowanceYearEnd = $allowanceService->refreshDateForYear(
+                $settings,
+                (int) $allowanceYearStart->year + 1
+            );
+
+            $nonWorkDayQuery
+                ->whereDate('date', '>=', $allowanceYearStart->toDateString())
+                ->whereDate('date', '<', $allowanceYearEnd->toDateString());
+        }
+
+        $nonWorkDay = $nonWorkDayQuery->get();
+
+        $workDay = WorkDay::query()
             ->orderByRaw("CASE day
                 WHEN 'Monday' THEN 1
                 WHEN 'Tuesday' THEN 2
@@ -75,13 +96,13 @@ class AdminRoutesController extends Controller
                 ELSE 8
             END")
             ->get();
-        $selectedWorkDayIds = $WorkDay
+        $selectedWorkDayIds = $workDay
             ->where('active', true)
             ->pluck('id')
             ->map(fn ($id) => (string) $id)
             ->all();
 
-        return view('admin.config.leave-rules', compact('settings', 'WorkDay', 'selectedWorkDayIds'));
+        return view('admin.config.leave-rules', compact('settings', 'workDay', 'selectedWorkDayIds', 'nonWorkDay'));
     }
 
     public function view_company_departments() {
