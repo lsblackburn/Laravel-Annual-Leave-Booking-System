@@ -4,7 +4,7 @@
 @endphp
 
 @if ($type)
-    <div x-data="{ destroy: false }" x-show="!destroy" class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div x-data="{ destroy: false }" x-show="!destroy" class="max-w-7xl mx-auto pt-5 px-4 sm:px-6 lg:px-8 lg:pt-6">
         <div {{ $attributes->merge([
             'class' => ($type === 'success'
                 ? 'bg-[--color-success] text-black'
