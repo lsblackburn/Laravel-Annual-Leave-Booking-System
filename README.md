@@ -247,13 +247,27 @@ php artisan test
 
 ## Operational Notes
 
-The scheduled allowance sync command is registered in `routes/console.php` and runs daily:
+The allowance sync command is registered in `routes/console.php` as a daily scheduled task.
+
+In production, Laravel's scheduler must be invoked every minute by cron so it can automatically run due tasks:
 
 ```bash
-php artisan schedule:run
+* * * * * cd /path/to/prime-creative-intranet && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-On the configured leave refresh date, the system recalculates user allowances based on the current leave rules and employment start dates.
+For local development, you can keep the scheduler running with:
+
+```bash
+php artisan schedule:work
+```
+
+To manually test the allowance sync command, run:
+
+```bash
+php artisan leave:sync-allowances
+```
+
+On the configured leave refresh date, the scheduled task recalculates user allowances based on the current leave rules and employment start dates.
 
 For production, ensure the following are configured:
 
@@ -263,4 +277,3 @@ For production, ensure the following are configured:
 - Scheduler
 - Application URL
 - HTTPS
-
