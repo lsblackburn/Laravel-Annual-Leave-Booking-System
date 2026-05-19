@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Leave;
 use App\Models\User;
+use App\Notifications\LeaveRequestResponded;
+use App\Notifications\LeaveRequestSubmitted;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -92,5 +94,48 @@ class LeaveNotificationsTest extends TestCase
 
         $response->assertRedirect(route('admin.leave-requests'));
         $this->assertNotNull($notification->refresh()->read_at);
+    }
+
+    public function test_leave_submission_notification_can_be_sent_by_database_and_mail(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $employee = User::factory()->create(['role' => 'employee', 'name' => 'Alex Example']);
+        $leave = Leave::create([
+            'user_id' => $employee->id,
+            'start_date' => Carbon::now()->addMonth()->toDateString(),
+            'end_date' => Carbon::now()->addMonth()->toDateString(),
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
+        $notification = new LeaveRequestSubmitted($leave);
+
+        $this->assertSame(['database', 'mail'], $notification->via($admin));
+
+        $mail = $notification->toMail($admin);
+
+        $this->assertSame('New leave request', $mail->subject);
+        $this->assertStringContainsString('Alex Example requested leave', implode(' ', $mail->introLines));
+    }
+
+    public function test_leave_response_notification_can_be_sent_by_database_and_mail(): void
+    {
+        $employee = User::factory()->create(['role' => 'employee']);
+        $leaveDate = Carbon::now()->addMonth()->toDateString();
+        $leave = Leave::create([
+            'user_id' => $employee->id,
+            'start_date' => $leaveDate,
+            'end_date' => $leaveDate,
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
+        $leave->forceFill(['status' => 'approved']);
+        $notification = new LeaveRequestResponded($leave);
+
+        $this->assertSame(['database', 'mail'], $notification->via($employee));
+
+        $mail = $notification->toMail($employee);
+
+        $this->assertSame('Leave request Approved', $mail->subject);
+        $this->assertStringContainsString('was approved', implode(' ', $mail->introLines));
     }
 }
