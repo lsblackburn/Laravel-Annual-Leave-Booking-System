@@ -4,15 +4,14 @@ namespace App\Notifications;
 
 use App\Models\Leave;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LeaveRequestResponded extends Notification implements ShouldQueue
+class LeaveRequestResponded extends Notification
 {
     use Queueable;
 
-    public function __construct(private Leave $leave)
+    public function __construct(protected Leave $leave)
     {
     }
 
@@ -21,7 +20,7 @@ class LeaveRequestResponded extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     /**

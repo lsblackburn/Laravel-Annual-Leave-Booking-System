@@ -14,7 +14,9 @@ use App\Models\NonWorkDay;
 use App\Models\User;
 use App\Models\WorkDay;
 use App\Notifications\LeaveRequestResponded;
+use App\Notifications\LeaveRequestRespondedEmail;
 use App\Notifications\LeaveRequestSubmitted;
+use App\Notifications\LeaveRequestSubmittedEmail;
 use App\Services\LeaveAllowanceService;
 use App\Services\LeaveDepartmentAvailabilityService;
 
@@ -76,7 +78,10 @@ class LeaveController extends Controller
         User::query()
             ->where('role', 'admin')
             ->get()
-            ->each(fn (User $admin) => $admin->notify(new LeaveRequestSubmitted($leave)));
+            ->each(function (User $admin) use ($leave) {
+                $admin->notify(new LeaveRequestSubmitted($leave));
+                $admin->notify(new LeaveRequestSubmittedEmail($leave));
+            });
 
         return redirect()->route('leave.view')->with('success', 'Leave request created successfully.');
     }
@@ -164,6 +169,7 @@ class LeaveController extends Controller
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
         $leaveRequest->user->notify(new LeaveRequestResponded($leaveRequest));
+        $leaveRequest->user->notify(new LeaveRequestRespondedEmail($leaveRequest));
 
         return redirect()->route('admin.leave-requests')->with('success', "Leave request {$request->input('response')} successfully.");
     }
