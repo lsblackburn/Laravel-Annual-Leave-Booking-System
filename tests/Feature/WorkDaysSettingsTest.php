@@ -72,6 +72,27 @@ class WorkDaysSettingsTest extends TestCase
         $this->assertSame(1, NonWorkDay::whereDate('date', '2026-05-15')->count());
     }
 
+    public function test_admin_can_add_non_work_day(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('admin.non-work-days.create'), [
+                'name' => 'Bank holiday',
+                'date' => '25-05-2026',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.view-leave-rules'));
+
+        $this->assertDatabaseHas('non_work_days', [
+            'name' => 'Bank holiday',
+            'date' => '2026-05-25',
+        ]);
+    }
+
     public function test_non_work_days_list_keeps_current_allowance_year_dates_visible(): void
     {
         $this->travelTo('2026-05-15');

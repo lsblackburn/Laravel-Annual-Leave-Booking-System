@@ -4,10 +4,13 @@ namespace Tests\Unit;
 
 use App\Models\Leave;
 use App\Models\LeaveSetting;
+use App\Models\UserDepartment;
 use App\Models\User;
 use App\Models\WorkDay;
+use App\Services\LeaveAllowanceService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class UserLeaveAllowanceTest extends TestCase
@@ -239,6 +242,151 @@ class UserLeaveAllowanceTest extends TestCase
         $user->update(['name' => 'Updated User']);
 
         $this->assertSame(17.0, (float) $user->refresh()->leave_allowance);
+    }
+
+    public function test_calculating_leave_allowance_falls_back_to_user_allowance_when_settings_are_missing(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $user = User::factory()->create([
+            'employment_start_date' => '2020-01-01',
+            'leave_allowance' => 13,
+        ]);
+
+        $this->assertSame(13.0, app(LeaveAllowanceService::class)->calculateAllowance($user));
+    }
+
+    public function test_leave_request_without_refresh_settings_uses_existing_leave_allowance(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $this->createLeave($user, '2026-02-02', '2026-02-02', 'approved');
+
+        app(LeaveAllowanceService::class)->ensureLeaveRequestFitsAllowance($user, [
+            'start_date' => '2026-02-03',
+            'end_date' => '2026-02-03',
+            'is_half_day' => false,
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_leave_request_without_refresh_settings_ignores_request_being_updated(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $leave = $this->createLeave($user, '2026-02-02', '2026-02-02', 'pending');
+
+        app(LeaveAllowanceService::class)->ensureLeaveRequestFitsAllowance($user, [
+            'start_date' => '2026-02-02',
+            'end_date' => '2026-02-02',
+            'is_half_day' => false,
+        ], $leave);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_leave_request_without_refresh_settings_is_rejected_when_allowance_is_exceeded(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $user = User::factory()->create(['leave_allowance' => 1]);
+        $this->createLeave($user, '2026-02-02', '2026-02-02', 'approved');
+
+        $this->expectException(ValidationException::class);
+
+        app(LeaveAllowanceService::class)->ensureLeaveRequestFitsAllowance($user, [
+            'start_date' => '2026-02-03',
+            'end_date' => '2026-02-03',
+            'is_half_day' => false,
+        ]);
+    }
+
+    public function test_cross_refresh_request_skips_non_working_segment_before_validating_next_allowance_year(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-01-01'));
+
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 4,
+        ]);
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+
+        $user = User::factory()->create([
+            'leave_allowance' => 1,
+            'employment_start_date' => '2025-01-01',
+        ]);
+
+        app(LeaveAllowanceService::class)->ensureLeaveRequestFitsAllowance($user, [
+            'start_date' => '2027-03-27',
+            'end_date' => '2027-04-01',
+            'is_half_day' => false,
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_cross_refresh_request_continues_past_empty_allowance_year_segment(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-01-01'));
+
+        LeaveSetting::first()->update([
+            'leave_refresh_day' => 1,
+            'leave_refresh_month' => 4,
+        ]);
+        WorkDay::query()->update(['active' => false]);
+        WorkDay::where('day', 'Wednesday')->update(['active' => true]);
+
+        $user = User::factory()->create([
+            'leave_allowance' => 1,
+            'employment_start_date' => '2025-01-01',
+        ]);
+
+        app(LeaveAllowanceService::class)->ensureLeaveRequestFitsAllowance($user, [
+            'start_date' => '2026-03-31',
+            'end_date' => '2026-04-01',
+            'is_half_day' => false,
+        ]);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_leave_days_within_window_returns_zero_when_request_is_outside_window(): void
+    {
+        $service = app(LeaveAllowanceService::class);
+        $method = new \ReflectionMethod($service, 'leaveDaysWithinWindow');
+
+        $days = $method->invoke($service, [
+            'start_date' => '2026-02-01',
+            'end_date' => '2026-02-02',
+            'is_half_day' => false,
+        ], Carbon::parse('2026-03-01'), Carbon::parse('2026-04-01'));
+
+        $this->assertSame(0.0, $days);
+    }
+
+    public function test_half_day_leave_uses_half_a_day_when_no_refresh_settings_exist(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->createLeave($user, '2026-02-02', '2026-02-02', 'approved', true);
+
+        $this->assertSame(0.5, $user->approvedLeaveDaysUsed());
+    }
+
+    public function test_department_relationship_and_employee_role_helper(): void
+    {
+        $department = UserDepartment::create(['department' => 'Operations']);
+        $user = User::factory()->create([
+            'role' => 'employee',
+            'department_id' => $department->id,
+        ]);
+
+        $this->assertTrue($user->isEmployee());
+        $this->assertTrue($user->department->is($department));
     }
 
     private function createLeave(User $user, string $startDate, string $endDate, string $status, bool $isHalfDay = false): Leave

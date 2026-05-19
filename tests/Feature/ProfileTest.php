@@ -194,4 +194,33 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_admin_can_delete_another_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.users.delete', $user), [
+                'password' => 'password',
+            ])
+            ->assertRedirect(route('admin.users'));
+
+        $this->assertAuthenticatedAs($admin);
+        $this->assertNull($user->fresh());
+    }
+
+    public function test_admin_cannot_delete_themselves_through_admin_route(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.users.delete', $admin), [
+                'password' => 'password',
+            ])
+            ->assertRedirect(route('admin.users'))
+            ->assertSessionHas('error', 'You cannot delete yourself through the Admin panel.');
+
+        $this->assertNotNull($admin->fresh());
+    }
 }

@@ -55,6 +55,15 @@ class SyncLeaveAllowanceTest extends TestCase
         $this->assertSame(20.0, (float) $user->refresh()->leave_allowance);
     }
 
+    public function test_sync_leave_allowance_warns_when_settings_are_missing(): void
+    {
+        LeaveSetting::query()->delete();
+
+        $this->artisan('leave:sync-allowances')
+            ->expectsOutput('No leave settings found')
+            ->assertSuccessful();
+    }
+
     private function configureFebruaryTwentyNinthRefresh(): void
     {
         LeaveSetting::first()->update([

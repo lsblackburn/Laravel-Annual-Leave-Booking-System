@@ -30,6 +30,22 @@ class TwoFactorAuthenticationTest extends TestCase
         $response->assertSessionHas('2fa:user_id', $user->id);
     }
 
+    public function test_two_factor_verify_page_requires_pending_challenge_session(): void
+    {
+        $this->get(route('2fa.verify'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('error', 'Your login session expired. Please sign in again.');
+    }
+
+    public function test_two_factor_verify_page_renders_with_pending_challenge_session(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+
+        $this->withSession(['2fa:user_id' => $user->id])
+            ->get(route('2fa.verify'))
+            ->assertOk();
+    }
+
     public function test_two_factor_password_handoff_does_not_rotate_existing_remember_token(): void
     {
         $user = $this->createUserWithTwoFactorSecret();
@@ -68,6 +84,23 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertTrue(RateLimiter::tooManyAttempts($this->otpThrottleKey($user), 5));
     }
 
+    public function test_otp_submission_requires_pending_challenge_session(): void
+    {
+        $this->post(route('2fa'), ['one_time_password' => '123456'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('error', 'Your login session expired. Please sign in again.');
+    }
+
+    public function test_otp_submission_requires_configured_two_factor_secret(): void
+    {
+        $user = User::factory()->create();
+
+        $this->withSession(['2fa:user_id' => $user->id])
+            ->post(route('2fa'), ['one_time_password' => '123456'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('error', 'Two-factor authentication is not configured for this account.');
+    }
+
     public function test_enabling_two_factor_encrypts_the_stored_secret_while_preserving_model_access(): void
     {
         $user = User::factory()->create();
@@ -100,6 +133,42 @@ class TwoFactorAuthenticationTest extends TestCase
             ->post(route('2fa.enable'), ['otp' => '123456'])
             ->assertRedirect(route('2fa.setup'))
             ->assertSessionHas('error', 'Your 2FA setup session expired. Please start again.');
+
+        $this->assertFalse($user->fresh()->hasTwoFactorEnabled());
+    }
+
+    public function test_two_factor_setup_page_generates_secret_and_qr_code(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('2fa.setup'))
+            ->assertOk()
+            ->assertViewHas('qrCodeSvg')
+            ->assertViewHas('secret')
+            ->assertSessionHas('2fa_secret');
+    }
+
+    public function test_two_factor_setup_redirects_when_already_enabled(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+
+        $this->actingAs($user)
+            ->get(route('2fa.setup'))
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('error', '2FA already enabled.');
+    }
+
+    public function test_invalid_otp_does_not_enable_two_factor(): void
+    {
+        $user = User::factory()->create();
+        $secret = (new Google2FA())->generateSecretKey();
+
+        $this->actingAs($user)
+            ->withSession(['2fa_secret' => $secret])
+            ->post(route('2fa.enable'), ['otp' => '000000'])
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Invalid OTP. Please try again.');
 
         $this->assertFalse($user->fresh()->hasTwoFactorEnabled());
     }
@@ -190,6 +259,47 @@ class TwoFactorAuthenticationTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $this->assertNull($user->fresh()->google2fa_secret);
+    }
+
+    public function test_disable_form_redirects_when_two_factor_is_not_enabled(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('2fa.disable.form'))
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('error', '2FA is not enabled.');
+    }
+
+    public function test_disable_form_renders_when_two_factor_is_enabled(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+
+        $this->actingAs($user)
+            ->get(route('2fa.disable.form'))
+            ->assertOk();
+    }
+
+    public function test_disable_requires_two_factor_to_be_enabled(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('2fa.disable'), ['otp' => '123456'])
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('error', '2FA is not enabled.');
+    }
+
+    public function test_invalid_otp_does_not_disable_two_factor(): void
+    {
+        $user = $this->createUserWithTwoFactorSecret();
+
+        $this->actingAs($user)
+            ->post(route('2fa.disable'), ['otp' => '000000'])
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Invalid OTP. Please try again.');
+
+        $this->assertTrue($user->fresh()->hasTwoFactorEnabled());
     }
 
     private function createUserWithTwoFactorSecret(): User
