@@ -111,6 +111,26 @@ class LeaveCalendarEventsTest extends TestCase
         ]);
     }
 
+    public function test_calendar_events_can_be_requested_without_date_filters(): void
+    {
+        $viewer = User::factory()->create();
+        $employee = User::factory()->create(['name' => 'Alex Example']);
+
+        $this->createLeave($employee, '2026-04-10', '2026-04-10');
+
+        NonWorkDay::create([
+            'name' => 'Company Closure',
+            'date' => '2026-04-13',
+        ]);
+
+        $response = $this->actingAs($viewer)->getJson(route('leave-requests.calendar-events'));
+
+        $response->assertOk();
+        $response->assertJsonCount(2);
+        $response->assertJsonFragment(['start' => '2026-04-10']);
+        $response->assertJsonFragment(['start' => '2026-04-13']);
+    }
+
     private function createLeave(User $user, string $startDate, string $endDate, string $status = 'approved'): Leave
     {
         $leave = Leave::create([
