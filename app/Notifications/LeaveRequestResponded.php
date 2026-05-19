@@ -4,13 +4,14 @@ namespace App\Notifications;
 
 use App\Models\Leave;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class LeaveRequestResponded extends Notification
 {
     use Queueable;
 
-    public function __construct(private Leave $leave)
+    public function __construct(protected Leave $leave)
     {
     }
 
@@ -34,6 +35,17 @@ class LeaveRequestResponded extends Notification
             'body' => 'Your leave request from '.$this->formattedDate($this->leave->start_date).' to '.$this->formattedDate($this->leave->end_date).' was '.$status.'.',
             'action_url' => route('leave.view'),
         ];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $message = $this->toArray($notifiable);
+
+        return (new MailMessage)
+            ->subject($message['title'])
+            ->greeting('Hello '.$notifiable->name.',')
+            ->line($message['body'])
+            ->action('View your leave requests', $message['action_url']);
     }
 
     private function formattedDate(string $date): string

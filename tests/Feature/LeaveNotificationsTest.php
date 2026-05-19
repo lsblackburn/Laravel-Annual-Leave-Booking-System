@@ -4,7 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Leave;
 use App\Models\User;
+use App\Notifications\LeaveRequestResponded;
+use App\Notifications\LeaveRequestRespondedEmail;
+use App\Notifications\LeaveRequestSubmitted;
+use App\Notifications\LeaveRequestSubmittedEmail;
 use Carbon\Carbon;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -92,5 +97,54 @@ class LeaveNotificationsTest extends TestCase
 
         $response->assertRedirect(route('admin.leave-requests'));
         $this->assertNotNull($notification->refresh()->read_at);
+    }
+
+    public function test_leave_submission_notification_is_written_to_database_and_email_is_queued(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $employee = User::factory()->create(['role' => 'employee', 'name' => 'Alex Example']);
+        $leave = Leave::create([
+            'user_id' => $employee->id,
+            'start_date' => Carbon::now()->addMonth()->toDateString(),
+            'end_date' => Carbon::now()->addMonth()->toDateString(),
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
+        $databaseNotification = new LeaveRequestSubmitted($leave);
+        $mailNotification = new LeaveRequestSubmittedEmail($leave);
+
+        $this->assertSame(['database'], $databaseNotification->via($admin));
+        $this->assertSame(['mail'], $mailNotification->via($admin));
+        $this->assertInstanceOf(ShouldQueue::class, $mailNotification);
+
+        $mail = $mailNotification->toMail($admin);
+
+        $this->assertSame('New leave request', $mail->subject);
+        $this->assertStringContainsString('Alex Example requested leave', implode(' ', $mail->introLines));
+    }
+
+    public function test_leave_response_notification_is_written_to_database_and_email_is_queued(): void
+    {
+        $employee = User::factory()->create(['role' => 'employee']);
+        $leaveDate = Carbon::now()->addMonth()->toDateString();
+        $leave = Leave::create([
+            'user_id' => $employee->id,
+            'start_date' => $leaveDate,
+            'end_date' => $leaveDate,
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
+        $leave->forceFill(['status' => 'approved']);
+        $databaseNotification = new LeaveRequestResponded($leave);
+        $mailNotification = new LeaveRequestRespondedEmail($leave);
+
+        $this->assertSame(['database'], $databaseNotification->via($employee));
+        $this->assertSame(['mail'], $mailNotification->via($employee));
+        $this->assertInstanceOf(ShouldQueue::class, $mailNotification);
+
+        $mail = $mailNotification->toMail($employee);
+
+        $this->assertSame('Leave request Approved', $mail->subject);
+        $this->assertStringContainsString('was approved', implode(' ', $mail->introLines));
     }
 }
