@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserDepartmentController;
 use App\Http\Controllers\NonWorkDayController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -45,6 +46,7 @@ Route::middleware(['auth', '2fa.remember'])->group(function () {
     Route::get('/leave/form', [LeaveController::class, 'form'])->name('leave.form');
     Route::post('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
     Route::delete('/leave/delete/{leave}', [LeaveController::class, 'delete'])->name('leave.delete');
+    Route::patch('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
 });
 
 Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {

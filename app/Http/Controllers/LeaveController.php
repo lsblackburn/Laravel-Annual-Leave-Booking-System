@@ -11,7 +11,10 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\NonWorkDay;
+use App\Models\User;
 use App\Models\WorkDay;
+use App\Notifications\LeaveRequestResponded;
+use App\Notifications\LeaveRequestSubmitted;
 use App\Services\LeaveAllowanceService;
 use App\Services\LeaveDepartmentAvailabilityService;
 
@@ -68,7 +71,12 @@ class LeaveController extends Controller
         $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated);
         $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated);
 
-        Leave::create($validated); 
+        $leave = Leave::create($validated);
+
+        User::query()
+            ->where('role', 'admin')
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new LeaveRequestSubmitted($leave)));
 
         return redirect()->route('leave.view')->with('success', 'Leave request created successfully.');
     }
@@ -155,6 +163,7 @@ class LeaveController extends Controller
         $leaveRequest->manager_comment = $validated['manager_comment'] ?? null;
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
+        $leaveRequest->user->notify(new LeaveRequestResponded($leaveRequest));
 
         return redirect()->route('admin.leave-requests')->with('success', "Leave request {$request->input('response')} successfully.");
     }
