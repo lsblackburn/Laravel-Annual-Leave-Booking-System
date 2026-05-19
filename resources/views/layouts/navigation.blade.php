@@ -1,4 +1,9 @@
 <nav x-data="{ open: false }" class="bg-[--color-card] border-b border-gray-100 dark:border-gray-700">
+    @php
+        $unreadNotifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
+        $unreadNotificationCount = Auth::user()->unreadNotifications()->count();
+    @endphp
+
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -78,8 +83,48 @@
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <!-- Notification and Settings Dropdowns -->
+            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-2">
+                <x-dropdown align="right" width="w-80">
+                    <x-slot name="trigger">
+                        <button type="button"
+                            class="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-[--color-subtletext] transition hover:bg-[--color-surface-alt] hover:text-[--color-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+                                <path
+                                    d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+                            </svg>
+                            <span class="sr-only">{{ __('Notifications') }}</span>
+
+                            @if ($unreadNotificationCount > 0)
+                                <span
+                                    class="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[--color-danger] px-1 text-[10px] font-semibold leading-none text-[--color-background]">
+                                    {{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}
+                                </span>
+                            @endif
+                        </button>
+                    </x-slot>
+
+                    <x-slot name="content">
+                        <div class="border-b border-[--color-border] px-4 py-3">
+                            <p class="text-sm font-semibold text-[--color-text]">{{ __('Notifications') }}</p>
+                            <p class="mt-1 text-xs text-[--color-subtletext]">
+                                {{ $unreadNotificationCount }} {{ \Illuminate\Support\Str::plural('unread item', $unreadNotificationCount) }}
+                            </p>
+                        </div>
+
+                        @forelse ($unreadNotifications as $notification)
+                            <x-notification-item :notification="$notification" />
+                        @empty
+                            <p class="px-4 py-6 text-sm text-[--color-subtletext]">
+                                {{ __('No new notifications.') }}
+                            </p>
+                        @endforelse
+                    </x-slot>
+                </x-dropdown>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-xs md:text-sm leading-4 font-medium rounded-md text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none transition ease-in-out duration-150">
@@ -155,6 +200,28 @@
             <div class="px-4">
                 <div class="font-medium text-base text-[--color-text]">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-[--color-subtletext]">{{ Auth::user()->email }}</div>
+            </div>
+
+            <div class="mt-3 border-t border-[--color-border] px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-[--color-text]">{{ __('Notifications') }}</p>
+                    @if ($unreadNotificationCount > 0)
+                        <span
+                            class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[--color-danger] px-1.5 text-xs font-semibold text-[--color-background]">
+                            {{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}
+                        </span>
+                    @endif
+                </div>
+
+                <div class="mt-2 overflow-hidden rounded-md border border-[--color-border]">
+                    @forelse ($unreadNotifications as $notification)
+                        <x-notification-item :notification="$notification" />
+                    @empty
+                        <p class="px-4 py-4 text-sm text-[--color-subtletext]">
+                            {{ __('No new notifications.') }}
+                        </p>
+                    @endforelse
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">
