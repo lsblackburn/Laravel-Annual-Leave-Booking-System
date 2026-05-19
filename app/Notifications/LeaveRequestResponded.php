@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Leave;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LeaveRequestResponded extends Notification
+class LeaveRequestResponded extends Notification implements ShouldQueue
 {
     use Queueable;
 
