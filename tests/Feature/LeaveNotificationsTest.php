@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Leave;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,13 +16,14 @@ class LeaveNotificationsTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $employee = User::factory()->create(['role' => 'employee', 'leave_allowance' => 20]);
+        $leaveDate = Carbon::now()->addMonth();
 
         $response = $this
             ->actingAs($employee)
             ->from(route('leave.form'))
             ->post(route('leave.create'), [
-                'start_date' => '01-06-2026',
-                'end_date' => '01-06-2026',
+                'start_date' => $leaveDate->format('d-m-Y'),
+                'end_date' => $leaveDate->format('d-m-Y'),
                 'is_half_day' => '0',
                 'reason' => 'Annual leave',
             ]);
@@ -40,10 +42,11 @@ class LeaveNotificationsTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $employee = User::factory()->create(['role' => 'employee', 'leave_allowance' => 20]);
+        $leaveDate = Carbon::now()->addMonth()->toDateString();
         $leave = Leave::create([
             'user_id' => $employee->id,
-            'start_date' => '2026-06-01',
-            'end_date' => '2026-06-01',
+            'start_date' => $leaveDate,
+            'end_date' => $leaveDate,
             'reason' => 'Annual leave',
             'is_half_day' => false,
         ]);
@@ -69,13 +72,14 @@ class LeaveNotificationsTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $employee = User::factory()->create(['role' => 'employee', 'leave_allowance' => 20]);
+        $leaveDate = Carbon::now()->addMonth();
 
         $this
             ->actingAs($employee)
             ->from(route('leave.form'))
             ->post(route('leave.create'), [
-                'start_date' => '01-06-2026',
-                'end_date' => '01-06-2026',
+                'start_date' => $leaveDate->format('d-m-Y'),
+                'end_date' => $leaveDate->format('d-m-Y'),
                 'is_half_day' => '0',
                 'reason' => 'Annual leave',
             ]);
