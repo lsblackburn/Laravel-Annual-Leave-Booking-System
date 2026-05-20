@@ -7,7 +7,7 @@ use App\Models\UserDepartment;
 
 class UserDepartmentController extends Controller
 {
-    public function create_company_departments(Request $request)
+    public function createCompanyDepartments(Request $request)
     {
         $validated = $request->validate([
             'department' => 'required|string|max:255|unique:user_departments',
@@ -18,7 +18,7 @@ class UserDepartmentController extends Controller
         return redirect()->route('admin.view-company-departments')->with('success', 'Department created successfully.');
     }
 
-    public function delete_company_department(UserDepartment $department)
+    public function deleteCompanyDepartment(UserDepartment $department)
     {
         $department->delete();
 

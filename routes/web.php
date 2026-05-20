@@ -17,13 +17,13 @@ Route::get('/', function () {
 });
 
 // 2FA challenge during login (user not yet authenticated)
-Route::get('/2fa/verify', [TwoFactorController::class, 'show_verify'])->name('2fa.verify');
+Route::get('/2fa/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
 Route::post('/2fa', [TwoFactorController::class, 'verify'])->name('2fa');
 
 Route::middleware(['auth', '2fa.remember'])->group(function () {
 
     Route::get('/2fa/setup', [TwoFactorController::class, 'setup'])->name('2fa.setup');
-    Route::get('/2fa/disable', [TwoFactorController::class, 'show_disable_form'])->name('2fa.disable.form');
+    Route::get('/2fa/disable', [TwoFactorController::class, 'showDisableForm'])->name('2fa.disable.form');
     Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
     Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 
@@ -35,7 +35,7 @@ Route::middleware(['auth', '2fa.remember'])->group(function () {
         return view('calendar');
     })->name('calendar');
 
-    Route::get('/leave-requests/calendar-events', [LeaveController::class, 'calendar_events'])->name('leave-requests.calendar-events');
+    Route::get('/leave-requests/calendar-events', [LeaveController::class, 'calendarEvents'])->name('leave-requests.calendar-events');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -50,29 +50,29 @@ Route::middleware(['auth', '2fa.remember'])->group(function () {
 });
 
 Route::middleware(['auth', '2fa.remember', 'role:admin'])->group(function () {
-    Route::get('/admin/leave-requests', [AdminRoutesController::class, 'leave_requests'])->name('admin.leave-requests');
+    Route::get('/admin/leave-requests', [AdminRoutesController::class, 'leaveRequests'])->name('admin.leave-requests');
     Route::get('/admin/users', [AdminRoutesController::class, 'users'])->name('admin.users');
-    Route::get('/admin/users/edit/{user}', [AdminRoutesController::class, 'edit_user'])->name('admin.users.edit');
-    Route::get('/admin/users/create', [AdminRoutesController::class, 'register_user'])->name('admin.users.create');
+    Route::get('/admin/users/edit/{user}', [AdminRoutesController::class, 'editUser'])->name('admin.users.edit');
+    Route::get('/admin/users/create', [AdminRoutesController::class, 'registerUser'])->name('admin.users.create');
     Route::post('/admin/users/register', [RegisteredUserController::class, 'store'])->name('admin.users.register');
     Route::patch('/admin/users/update/{user}', [UserManagementController::class, 'update'])->name('admin.users.update');
     Route::put('/admin/users/password/{user}', [PasswordController::class, 'update'])->name('admin.users.password.update');
     Route::delete('/admin/users/delete/{user}', [ProfileController::class, 'destroy'])->name('admin.users.delete');
     Route::post('/admin/users/promote/{user}', [UserManagementController::class, 'promote'])->name('admin.users.promote');
     Route::post('/admin/users/demote/{user}', [UserManagementController::class, 'demote'])->name('admin.users.demote');
-    Route::post('/admin/leave-requests/response/{request}', [LeaveController::class, 'leave_response'])->name('admin.leave-requests.response');
+    Route::post('/admin/leave-requests/response/{request}', [LeaveController::class, 'leaveResponse'])->name('admin.leave-requests.response');
     
-    Route::get('/admin/app-configuration', [AdminRoutesController::class, 'view_config'])->name('admin.view-config');
-    Route::get('/admin/app-configuration/leave-rules', [AdminRoutesController::class, 'view_leave_rules'])->name('admin.view-leave-rules');
-    Route::patch('/admin/app-configuration/work-days/update', [LeaveController::class, 'update_work_days'])->name('admin.work-days.update');
+    Route::get('/admin/app-configuration', [AdminRoutesController::class, 'viewConfig'])->name('admin.view-config');
+    Route::get('/admin/app-configuration/leave-rules', [AdminRoutesController::class, 'viewLeaveRules'])->name('admin.view-leave-rules');
+    Route::patch('/admin/app-configuration/work-days/update', [LeaveController::class, 'updateWorkDays'])->name('admin.work-days.update');
     Route::post('/admin/app-configuration/non-work-days/create', [NonWorkDayController::class, 'store'])->name('admin.non-work-days.create');
     Route::delete('/admin/app-configuration/non-work-days/delete/{nonWorkDay}', [NonWorkDayController::class, 'destroy'])->name('admin.non-work-days.delete');
-    Route::patch('/admin/app-configuration/leave-refresh/update', [LeaveController::class, 'update_leave_refresh'])->name('admin.leave-refresh.update');
-    Route::patch('/admin/app-configuration/leave-allowance/update', [LeaveController::class, 'update_leave_allowance'])->name('admin.leave-allowance.update');
+    Route::patch('/admin/app-configuration/leave-refresh/update', [LeaveController::class, 'updateLeaveRefresh'])->name('admin.leave-refresh.update');
+    Route::patch('/admin/app-configuration/leave-allowance/update', [LeaveController::class, 'updateLeaveAllowance'])->name('admin.leave-allowance.update');
 
-    Route::get('/admin/app-configuration/company-departments', [AdminRoutesController::class, 'view_company_departments'])->name('admin.view-company-departments');
-    Route::post('/admin/app-configuration/company-departments/create', [UserDepartmentController::class, 'create_company_departments'])->name('admin.company-departments.create');
-    Route::delete('/admin/app-configuration/company-departments/delete/{department}', [UserDepartmentController::class, 'delete_company_department'])->name('admin.company-departments.delete');
+    Route::get('/admin/app-configuration/company-departments', [AdminRoutesController::class, 'viewCompanyDepartments'])->name('admin.view-company-departments');
+    Route::post('/admin/app-configuration/company-departments/create', [UserDepartmentController::class, 'createCompanyDepartments'])->name('admin.company-departments.create');
+    Route::delete('/admin/app-configuration/company-departments/delete/{department}', [UserDepartmentController::class, 'deleteCompanyDepartment'])->name('admin.company-departments.delete');
 });
 
 require __DIR__.'/auth.php';

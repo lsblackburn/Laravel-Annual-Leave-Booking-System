@@ -18,7 +18,7 @@ use PragmaRX\Google2FA\Google2FA;
 class TwoFactorController extends Controller
 {
     
-    public function show_verify(Request $request)
+    public function showVerify(Request $request)
     {
         if (! $request->session()->has('2fa:user_id')) {
             return redirect()->route('login')->with('error', 'Your login session expired. Please sign in again.');
@@ -130,7 +130,7 @@ class TwoFactorController extends Controller
         return back()->with('error', 'Invalid OTP. Please try again.');
     }
 
-    public function show_disable_form()
+    public function showDisableForm()
     {
         $user = Auth::user();
 

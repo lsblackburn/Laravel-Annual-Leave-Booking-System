@@ -260,7 +260,7 @@ class LeaveAllowanceService
             $requestEnd = $windowEnd->copy()->subDay();
         }
 
-        return $this->WorkDayBetween($requestStart, $requestEnd);
+        return $this->workDaysBetween($requestStart, $requestEnd);
     }
 
     private function leaveDays(array $leaveRequest): float
@@ -272,10 +272,10 @@ class LeaveAllowanceService
             return $this->isWorkingDate($startDate) ? 0.5 : 0.0;
         }
 
-        return $this->WorkDayBetween($startDate, $endDate);
+        return $this->workDaysBetween($startDate, $endDate);
     }
 
-    private function WorkDayBetween(Carbon $startDate, Carbon $endDate): float
+    private function workDaysBetween(Carbon $startDate, Carbon $endDate): float
     {
         return (float) collect(CarbonPeriod::create($startDate, $endDate))
             ->filter(fn (Carbon $date) => $this->isWorkingDate($date))

@@ -233,10 +233,10 @@ class LeaveWorkflowAuthorizationTest extends TestCase
         $this->actingAs($employee);
 
         foreach ([
-            fn () => $controller->leave_response(new Request(['response' => 'approved']), 1),
-            fn () => $controller->update_leave_refresh(new Request()),
-            fn () => $controller->update_leave_allowance(new Request(), \App\Models\LeaveSetting::first()),
-            fn () => $controller->update_work_days(new Request()),
+            fn () => $controller->leaveResponse(new Request(['response' => 'approved']), 1),
+            fn () => $controller->updateLeaveRefresh(new Request()),
+            fn () => $controller->updateLeaveAllowance(new Request(), \App\Models\LeaveSetting::first()),
+            fn () => $controller->updateWorkDays(new Request()),
         ] as $action) {
             try {
                 $action();
