@@ -16,7 +16,7 @@ use Carbon\Carbon;
 class AdminRoutesController extends Controller
 {
 
-    public function leave_requests()
+    public function leaveRequests()
     {
         $leaveRequests = Leave::select('leaves.*', 'users.name as user_name')
             ->join('users', 'leaves.user_id', '=', 'users.id')
@@ -36,7 +36,7 @@ class AdminRoutesController extends Controller
     }
 
 
-    public function edit_user(User $user)
+    public function editUser(User $user)
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users')->with('error', 'You cannot edit yourself in the Admin panel.');
@@ -49,7 +49,7 @@ class AdminRoutesController extends Controller
         return view('admin.edit-user', compact('user', 'departments'));
     }
 
-    public function register_user()
+    public function registerUser()
     {
         $departments = UserDepartment::orderBy('department', 'asc')->get();
 
@@ -59,12 +59,12 @@ class AdminRoutesController extends Controller
         ]);
     }
 
-    public function view_config()
+    public function viewConfig()
     {
         return view('admin.app-config');
     }
 
-    public function view_leave_rules(LeaveAllowanceService $allowanceService) {
+    public function viewLeaveRules(LeaveAllowanceService $allowanceService) {
         $settings = LeaveSetting::first();
         $oldestVisibleNonWorkDay = $allowanceService->allowanceYearStart($settings, Carbon::today())
             ?? Carbon::today();
@@ -95,7 +95,7 @@ class AdminRoutesController extends Controller
         return view('admin.config.leave-rules', compact('settings', 'workDay', 'selectedWorkDayIds', 'nonWorkDay'));
     }
 
-    public function view_company_departments() {
+    public function viewCompanyDepartments() {
         $departments = UserDepartment::orderBy('department', 'asc')->paginate(30);
 
         return view('admin.config.company-departments', compact('departments'));

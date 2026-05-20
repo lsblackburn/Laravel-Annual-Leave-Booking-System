@@ -122,7 +122,7 @@ class LeaveController extends Controller
         return redirect()->route('leave.view')->with('success', 'Leave request updated successfully.');
     }
 
-    public function leave_response(Request $request, $id)
+    public function leaveResponse(Request $request, $id)
     {
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized action.');
@@ -178,7 +178,7 @@ class LeaveController extends Controller
         return redirect()->route('admin.leave-requests')->with('success', "Leave request {$request->input('response')} successfully.");
     }
 
-    public function calendar_events(Request $request): JsonResponse
+    public function calendarEvents(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'start' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}(?:$|[T\s])/', 'before_or_equal:end'],
@@ -286,7 +286,7 @@ class LeaveController extends Controller
         return redirect()->route('leave.view')->with('success', 'Leave request cancelled successfully.');
     }
 
-    public function update_leave_refresh(Request $request)
+    public function updateLeaveRefresh(Request $request)
     {
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorised action.');
@@ -322,7 +322,7 @@ class LeaveController extends Controller
         return redirect()->route('admin.view-leave-rules')->with('success', 'Leave refresh dates have updated successfully.');
     }
 
-    public function update_leave_allowance(Request $request, LeaveSetting $leave)
+    public function updateLeaveAllowance(Request $request, LeaveSetting $leave)
     {
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorised action.');
@@ -347,7 +347,7 @@ class LeaveController extends Controller
         return redirect()->route('admin.view-leave-rules')->with('success', 'Leave allowance settings have updated successfully.');
     }
 
-    public function update_work_days(Request $request)
+    public function updateWorkDays(Request $request)
     {
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorised action.');
