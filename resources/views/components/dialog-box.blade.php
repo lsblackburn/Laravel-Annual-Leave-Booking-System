@@ -1,18 +1,11 @@
-<div
-    id="popup-modal"
-    tabindex="-1"
-    x-data="{ open: false, form: null }"
-    x-show="open"
-    x-on:confirm-cancel-leave.window="open = true; form = $event.detail.form"
-    x-on:keydown.escape.window="open = false"
-    x-on:click.self="open = false"
-    style="display: none;"
-    class="fixed inset-0 z-50 grid items-center justify-center overflow-y-auto overflow-x-hidden bg-black/40 p-4"
->
+<div id="popup-modal" tabindex="-1" x-data="{ open: false, form: null }" x-show="open"
+    x-on:confirm-cancel-leave.window="open = true; form = $event.detail.form" x-on:keydown.escape.window="open = false"
+    x-on:click.self="open = false" style="display: none;"
+    class="fixed inset-0 z-50 grid items-center justify-center overflow-y-auto overflow-x-hidden bg-black/40 p-4">
     <div class="relative w-full max-w-md">
-        <div class="relative rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xl">
+        <div class="relative rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xl">
             <button type="button"
-                class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
                 x-on:click="open = false">
                 <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                     fill="none" viewBox="0 0 24 24">
@@ -41,15 +34,13 @@
                 </p>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                    <button type="button"
-                        x-on:click="form.submit()"
-                        class="inline-flex items-center justify-center rounded-md border border-transparent bg-[var(--color-danger)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-background)] shadow-sm transition hover:bg-[var(--color-danger-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
+                    <button type="button" x-on:click="form.submit()"
+                        class="inline-flex items-center justify-center rounded-lg border border-transparent bg-[var(--color-danger)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-background)] shadow-sm transition hover:bg-[var(--color-danger-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
                         Yes
                     </button>
 
-                    <button type="button"
-                        x-on:click="open = false"
-                        class="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                    <button type="button" x-on:click="open = false"
+                        class="inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
                         No
                     </button>
                 </div>

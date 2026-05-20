@@ -71,7 +71,7 @@
                                 <div>
                                     <button type="button" x-data=""
                                         x-on:click.prevent="$dispatch('open-modal', 'confirm-non-work-day-deletion-{{ $day->id }}')"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
@@ -95,7 +95,7 @@
                 @else
                     <section class="px-4 py-10 text-center sm:px-6" aria-labelledby="empty-non-work-days-heading">
                         <div
-                            class="mx-auto flex h-11 w-11 items-center justify-center rounded-md bg-[var(--color-surface-alt)] text-[var(--color-subtletext)]">
+                            class="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-subtletext)]">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 aria-hidden="true">

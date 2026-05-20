@@ -3,9 +3,8 @@
     'value' => null,
 ])
 
-<textarea
-    @disabled($disabled)
+<textarea @disabled($disabled)
     {{ $attributes->merge([
-        'class' => 'bg-[--color-background] border-[--color-border] text-[--color-text] placeholder:text-[--color-surface-alt] focus:border-[--color-primary] focus:ring-[--color-primary] rounded-md shadow-sm'
-    ]) }}
->{{ old($attributes->get('name'), $value) }}</textarea>
+        'class' =>
+            'bg-[--color-background] border-[--color-border] text-[--color-text] placeholder:text-[--color-surface-alt] focus:border-[--color-primary] focus:ring-[--color-primary] rounded-lg shadow-sm',
+    ]) }}>{{ old($attributes->get('name'), $value) }}</textarea>

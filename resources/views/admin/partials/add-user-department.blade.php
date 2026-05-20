@@ -1,4 +1,4 @@
-<div class="bg-[--color-card] shadow sm:rounded-lg">
+<div class="bg-[--color-card] shadow rounded-lg">
     <div class="grid gap-8 p-4 sm:p-8 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
         <section aria-labelledby="add-department-heading">
             <header>
@@ -40,7 +40,7 @@
                 </div>
 
                 <p
-                    class="inline-flex w-fit items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--color-subtletext)]">
+                    class="inline-flex w-fit items-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--color-subtletext)]">
                     <span>{{ $departments->total() }}</span>
                     <span class="ml-1">
                         {{ \Illuminate\Support\Str::plural('department', $departments->total()) }}
@@ -56,7 +56,7 @@
                                 class="flex items-center justify-between gap-4 px-4 py-4 transition hover:bg-[var(--color-surface-alt)] sm:px-5">
                                 <div class="flex min-w-0 items-center gap-3">
                                     <span
-                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[var(--color-primary)] text-sm font-semibold uppercase text-[var(--color-background)]"
+                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)] text-sm font-semibold uppercase text-[var(--color-background)]"
                                         aria-hidden="true">
                                         {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($department->department, 0, 1)) }}
                                     </span>
@@ -75,7 +75,7 @@
                                 <div>
                                     <button type="button" x-data=""
                                         x-on:click.prevent="$dispatch('open-modal', 'confirm-department-deletion-{{ $department->id }}')"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)] focus:ring-offset-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
@@ -101,7 +101,7 @@
                 @else
                     <section class="px-4 py-10 text-center sm:px-6" aria-labelledby="empty-departments-heading">
                         <div
-                            class="mx-auto flex h-11 w-11 items-center justify-center rounded-md bg-[var(--color-surface-alt)] text-[var(--color-subtletext)]">
+                            class="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-subtletext)]">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 aria-hidden="true">

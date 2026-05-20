@@ -7,7 +7,7 @@
 
     <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
 
-        <div class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
+        <div class="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
             <table class="min-w-full text-sm text-left">
 
                 <!-- Header -->
@@ -44,7 +44,7 @@
                                 class="px-6 py-4 text-right text-sm text-[var(--color-subtletext)] flex flex-row flex-wrap justify-end gap-3">
                                 @if (auth()->user()->id !== $user->id)
                                     <a href="{{ route('admin.users.edit', $user->id) }}"
-                                        class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                        class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-lg font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </a>
                                     @if ($user->role !== 'admin')
@@ -53,7 +53,7 @@
                                             @method('POST')
                                             <input type="hidden" name="user_id" value="{{ $user->id }}">
                                             <button type="submit"
-                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-lg font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                                 Promote to Admin
                                             </button>
                                         </form>
@@ -63,7 +63,7 @@
                                             @method('POST')
                                             <input type="hidden" name="user_id" value="{{ $user->id }}">
                                             <button type="submit"
-                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                                class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-lg font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                                 Demote from Admin
                                             </button>
                                         </form>

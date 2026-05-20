@@ -27,7 +27,7 @@
                 <div
                     class="relative rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xl">
                     <button type="button" x-on:click="open = false"
-                        class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                        class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
                         <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
                             height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -38,7 +38,7 @@
 
                     <div class="flex items-start gap-3 pr-10">
                         <div
-                            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--color-surface-alt)] text-[var(--color-primary)]">
+                            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-primary)]">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" aria-hidden="true">
@@ -60,14 +60,14 @@
                         </div>
                     </div>
 
-                    <div class="mt-5 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-4">
+                    <div class="mt-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-4">
                         <p class="whitespace-pre-line text-sm leading-6 text-[var(--color-text)]"
                             x-text="request.manager_comment"></p>
                     </div>
 
                     <div class="mt-6 flex justify-end">
                         <button type="button" x-on:click="open = false"
-                            class="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                            class="inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
                             Close
                         </button>
                     </div>
@@ -78,7 +78,7 @@
         <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
 
             <div
-                class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
+                class="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
                 <table class="min-w-full text-sm text-left">
 
                     <!-- Header -->
@@ -162,7 +162,7 @@
                                                     x-on:click="show('', {
                                                         manager_comment: $el.dataset.managerComment,
                                                     })"
-                                                    class="inline-flex items-center px-2 md:px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                                    class="inline-flex items-center px-2 md:px-4 py-2 bg-[--color-primary] border border-transparent rounded-lg font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24"
                                                         height="24" viewBox="0 0 24 24" fill="none"
                                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"

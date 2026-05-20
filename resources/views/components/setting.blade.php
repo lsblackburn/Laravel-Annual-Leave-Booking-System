@@ -28,7 +28,7 @@
 }" x-init="init()" class="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
     <!-- Panel -->
     <div x-show="open" @click.outside="open = false" x-transition
-        class="w-72 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-xl">
+        class="w-72 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-xl">
         <h2 class="mb-4 text-lg font-semibold text-[var(--color-text)]">
             Settings
         </h2>

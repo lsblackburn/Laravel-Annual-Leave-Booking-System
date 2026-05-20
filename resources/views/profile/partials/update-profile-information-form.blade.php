@@ -36,7 +36,7 @@
                         {{ __('Your email address is unverified.') }}
 
                         <button form="send-verification"
-                            class="underline text-sm text-[--color-subtletext] hover:text-[--color-text] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary]">
+                            class="underline text-sm text-[--color-subtletext] hover:text-[--color-text] rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[--color-primary]">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
@@ -53,9 +53,8 @@
         @if (auth()->user()->isAdmin())
             <div>
                 <x-input-label for="department_id" :value="__('Department')" />
-                <x-select-dropdown id="department_id" name="department_id" class="mt-1 block w-full"
-                    :options="$departments" :value="old('department_id', $user->department_id)"
-                    :placeholder="__('Select a department')" />
+                <x-select-dropdown id="department_id" name="department_id" class="mt-1 block w-full" :options="$departments"
+                    :value="old('department_id', $user->department_id)" :placeholder="__('Select a department')" />
                 <x-input-error class="mt-2" :messages="$errors->get('department_id')" />
             </div>
 

@@ -21,9 +21,9 @@
             class="fixed inset-0 z-50 grid items-center justify-center overflow-y-auto overflow-x-hidden bg-black/40 p-4">
             <div class="relative w-full max-w-lg">
                 <div
-                    class="relative rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xl">
+                    class="relative rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xl">
                     <button type="button" x-on:click="open = false"
-                        class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-md text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                        class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-subtletext)] transition hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
                         <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
                             height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -82,17 +82,17 @@
                         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
 
                             <button type="button" x-on:click="open = false"
-                                class="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text)] shadow-sm transition hover:bg-[var(--color-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2">
                                 Close
                             </button>
 
                             <button type="submit" name="response" value="rejected"
-                                class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-danger] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-danger-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-[--color-danger] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-danger-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
                                 Decline
                             </button>
 
                             <button type="submit" name="response" value="approved"
-                                class="inline-flex items-center justify-center rounded-md border border-transparent bg-[--color-success] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-success-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-[--color-success] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[--color-background] transition hover:bg-[--color-success-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
                                 Approve
                             </button>
 
@@ -105,7 +105,7 @@
         <div class="max-w-7xl mx-auto py-6 px-3 sm:px-6 lg:px-8">
 
             <div
-                class="overflow-x-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
+                class="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
                 <table class="min-w-full text-sm text-left">
 
                     <!-- Header -->
@@ -184,7 +184,7 @@
                                             reason: $el.dataset.reason,
                                             additionalInfo: $el.dataset.additionalInfo,
                                         })"
-                                            class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-md font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
+                                            class="inline-flex items-center px-4 py-2 bg-[--color-primary] border border-transparent rounded-lg font-semibold text-xs text-[--color-background] uppercase tracking-widest hover:bg-[--color-primary-hover] focus:bg-[--color-primary-hover] active:bg-[--color-primary-hover] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2 transition ease-in-out duration-150">
                                             Respond
                                         </button>
 

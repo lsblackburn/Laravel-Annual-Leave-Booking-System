@@ -13,7 +13,7 @@
 <select @disabled($disabled)
     {{ $attributes->merge([
         'class' =>
-            'bg-[--color-background] border-[--color-border] text-[--color-text] placeholder:text-[--color-surface-alt] focus:border-[--color-primary] focus:ring-[--color-primary] rounded-md shadow-sm',
+            'bg-[--color-background] border-[--color-border] text-[--color-text] placeholder:text-[--color-surface-alt] focus:border-[--color-primary] focus:ring-[--color-primary] rounded-lg shadow-sm',
     ]) }}>
     @if ($placeholder)
         <option value="" @selected($selected === null || $selected === '')>

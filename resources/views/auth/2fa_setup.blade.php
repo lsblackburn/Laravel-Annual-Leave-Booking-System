@@ -8,7 +8,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
-            <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-[--color-card] shadow rounded-lg">
                 <div class="w-full">
                     <section>
                         <h2 class="text-lg font-medium text-[--color-text]">
@@ -16,7 +16,7 @@
                         </h2>
 
                         <p class="mt-1 text-sm text-[--color-subtletext]">
-                            {{ __("Download your preferred mobile authenticator app (e.g., Google Authenticator).") }}
+                            {{ __('Download your preferred mobile authenticator app (e.g., Google Authenticator).') }}
                         </p>
                     </section>
                 </div>
@@ -24,7 +24,7 @@
         </div>
 
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
-            <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-[--color-card] shadow rounded-lg">
                 <div class="w-full">
                     <section>
 
@@ -37,21 +37,21 @@
                             <div>
 
                                 <p class="mt-1 text-sm text-[--color-subtletext]">
-                                    {{ __("Scan the QR code using a mobile authentication app to genrate a verification code.") }}
+                                    {{ __('Scan the QR code using a mobile authentication app to genrate a verification code.') }}
                                 </p>
 
                                 <p class="mt-1 text-sm text-[--color-subtletext]">
-                                    {{ __("Set up your two factor authentication by scanning the QR code.") }}
+                                    {{ __('Set up your two factor authentication by scanning the QR code.') }}
                                 </p>
 
                                 <p class="mt-1 text-sm text-[--color-subtletext]">
-                                    {{ __("Alternatively, you can use the following code within the authenticator:") }}
+                                    {{ __('Alternatively, you can use the following code within the authenticator:') }}
                                 </p>
 
                                 <p class="mt-1 text-sm font-bold text-[--color-text]">{{ $secret }}</p>
 
                                 <p class="mt-1 text-sm text-[--color-subtletext]">
-                                    {{ __("Ensure you submit the current one because it refreshes every 30 seconds.") }}
+                                    {{ __('Ensure you submit the current one because it refreshes every 30 seconds.') }}
                                 </p>
 
                             </div>
@@ -68,7 +68,7 @@
         </div>
 
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
-            <div class="p-4 sm:p-8 bg-[--color-card] shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-[--color-card] shadow rounded-lg">
                 <div class="max-w-xl">
                     <section>
 
@@ -83,7 +83,8 @@
 
                                 <x-input-label for="otp" :value="__('One Time Password (OTP)')" />
 
-                                <x-text-input id="otp" type="text" name="otp" class="mt-1 block w-full" required />
+                                <x-text-input id="otp" type="text" name="otp" class="mt-1 block w-full"
+                                    required />
 
                             </div>
 

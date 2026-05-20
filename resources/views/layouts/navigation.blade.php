@@ -20,27 +20,30 @@
 
                     @if (auth()->user()->isAdmin())
                         <div class="relative flex items-center group">
-                            <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
+                            <button
+                                class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
                                 {{ request()->routeIs('admin.*')
                                     ? 'border-[--color-primary] text-[--color-text]'
-                                    : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]'
-                                }}">
+                                    : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]' }}">
                                 {{ __('Admin Panel') }}
 
                                 <svg class="ms-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
 
-                            <div class="absolute left-0 top-full z-50 hidden w-48 rounded-md bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
+                            <div
+                                class="absolute left-0 top-full z-50 hidden w-48 rounded-lg bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
                                 <div class="py-1">
                                     <a href="{{ route('admin.leave-requests') }}"
-                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                        class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                         {{ __('View Leave Requests') }}
                                     </a>
 
                                     <a href="{{ route('admin.users') }}"
-                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                        class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                         {{ __('User Management') }}
                                     </a>
                                 </div>
@@ -53,33 +56,36 @@
                     </x-nav-link>
 
                     <div class="relative flex items-center group">
-                        <button class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
+                        <button
+                            class="inline-flex items-center px-1 pt-1 border-b-2 h-full text-xs md:text-sm font-medium leading-5 transition duration-150 ease-in-out
                             {{ request()->routeIs('leave.*')
                                 ? 'border-[--color-primary] text-[--color-text]'
-                                : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]'
-                            }}">
+                                : 'border-transparent text-[--color-subtletext] hover:text-[--color-text] hover:border-[--color-border]' }}">
                             {{ __('Annual Leave') }}
 
                             <svg class="ms-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
                             </svg>
                         </button>
 
-                        <div class="absolute left-0 top-full z-50 hidden w-48 rounded-md bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
+                        <div
+                            class="absolute left-0 top-full z-50 hidden w-48 rounded-lg bg-[--color-card] shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block">
                             <div class="py-1">
                                 <a href="{{ route('leave.view') }}"
-                                class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                     {{ __('View Your Leave') }}
                                 </a>
 
                                 <a href="{{ route('leave.form') }}"
-                                class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
+                                    class="block px-4 py-2 text-xs md:text-sm text-[--color-text] hover:bg-[--color-surface-alt]">
                                     {{ __('Request Leave') }}
                                 </a>
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -88,10 +94,10 @@
                 <x-dropdown align="right" width="w-80">
                     <x-slot name="trigger">
                         <button type="button"
-                            class="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-[--color-subtletext] transition hover:bg-[--color-surface-alt] hover:text-[--color-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" aria-hidden="true">
+                            class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-[--color-subtletext] transition hover:bg-[--color-surface-alt] hover:text-[--color-text] focus:outline-none focus:ring-2 focus:ring-[--color-primary] focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
                                 <path d="M10.268 21a2 2 0 0 0 3.464 0" />
                                 <path
                                     d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
@@ -111,7 +117,8 @@
                         <div class="border-b border-[--color-border] px-4 py-3">
                             <p class="text-sm font-semibold text-[--color-text]">{{ __('Notifications') }}</p>
                             <p class="mt-1 text-xs text-[--color-subtletext]">
-                                {{ $unreadNotificationCount }} {{ \Illuminate\Support\Str::plural('unread item', $unreadNotificationCount) }}
+                                {{ $unreadNotificationCount }}
+                                {{ \Illuminate\Support\Str::plural('unread item', $unreadNotificationCount) }}
                             </p>
                         </div>
 
@@ -127,12 +134,16 @@
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-xs md:text-sm leading-4 font-medium rounded-md text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none transition ease-in-out duration-150">
+                        <button
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-xs md:text-sm leading-4 font-medium rounded-lg text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -148,7 +159,7 @@
                             @csrf
 
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
+                                onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
@@ -159,10 +170,14 @@
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none focus:bg-[--color-surface-alt]  focus:text-[--color-text]  transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                    class="inline-flex items-center justify-center p-2 rounded-lg text-[--color-subtletext] hover:text-[--color-text] hover:bg-[--color-surface-alt] focus:outline-none focus:bg-[--color-surface-alt]  focus:text-[--color-text]  transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -170,7 +185,7 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
@@ -213,7 +228,7 @@
                     @endif
                 </div>
 
-                <div class="mt-2 overflow-hidden rounded-md border border-[--color-border]">
+                <div class="mt-2 overflow-hidden rounded-lg border border-[--color-border]">
                     @forelse ($unreadNotifications as $notification)
                         <x-notification-item :notification="$notification" />
                     @empty
@@ -234,7 +249,7 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
