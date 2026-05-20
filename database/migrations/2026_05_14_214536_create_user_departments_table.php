@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_departments', function (Blueprint $table) {
             $table->id();
-            $table->string('department');
+            $table->string('department')->unique();
             $table->timestamps();
         });
     }
