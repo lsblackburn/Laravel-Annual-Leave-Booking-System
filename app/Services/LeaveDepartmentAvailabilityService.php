@@ -26,6 +26,7 @@ class LeaveDepartmentAvailabilityService
 
         $departmentUserIds = User::where('department_id', $user->department_id)->pluck('id');
 
+        // Single-person departments are exempt because there is no colleague available to provide cover.
         if ($departmentUserIds->count() <= 1) {
             return;
         }
@@ -46,6 +47,7 @@ class LeaveDepartmentAvailabilityService
         $overlappingLeaves = $overlappingLeavesQuery->get();
 
         foreach (CarbonPeriod::create($requestStart, $requestEnd) as $date) {
+            // Non-working days consume no allowance and do not require department coverage.
             if (! $this->leaveAllowance->isWorkingDate($date)) {
                 continue;
             }

@@ -7,6 +7,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Synchronous in-app notification sent to an employee after an admin response.
+ */
 class LeaveRequestResponded extends Notification
 {
     use Queueable;

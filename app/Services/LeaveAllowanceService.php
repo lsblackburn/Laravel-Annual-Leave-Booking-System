@@ -16,11 +16,15 @@ class LeaveAllowanceService
     private ?array $activeWorkDayNames = null;
     private ?array $nonWorkDayDates = null;
 
+    /**
+     * Calculate the entitlement that should apply at a specific point in time.
+     */
     public function calculateAllowance(User $user, ?LeaveSetting $settings = null, ?Carbon $date = null): float
     {
         $settings ??= LeaveSetting::first();
         $date ??= Carbon::now();
 
+        // Missing settings are treated as "keep the user's stored allowance" so leave remains usable.
         if (! $settings || ! $settings->base_allowance) {
             return (float) $user->leave_allowance;
         }
@@ -75,6 +79,7 @@ class LeaveAllowanceService
         $settings = LeaveSetting::first();
         $totalRequestedDays = $this->leaveDays($leaveRequest);
 
+        // Requests made only on inactive weekdays or configured non-work days should not be accepted.
         if ($totalRequestedDays <= 0) {
             throw ValidationException::withMessages([
                 'end_date' => 'This request does not include any working days.',
@@ -97,6 +102,7 @@ class LeaveAllowanceService
         $requestEnd = Carbon::parse($leaveRequest['end_date'])->startOfDay();
         $allowanceYearStart = $this->allowanceYearStart($settings, $requestStart);
 
+        // A request can cross refresh dates, so validate each allowance year segment separately.
         while ($allowanceYearStart->lte($requestEnd)) {
             $allowanceYearEnd = $this->allowanceYearEnd($settings, $allowanceYearStart);
             $requestedDays = $this->leaveDaysWithinWindow(
@@ -152,6 +158,7 @@ class LeaveAllowanceService
     public function refreshDateForYear(LeaveSetting $settings, int $year): Carbon
     {
         $month = (int) $settings->leave_refresh_month;
+        // Clamp dates such as 29 February to the last valid day in non-leap years.
         $day = min((int) $settings->leave_refresh_day, Carbon::create($year, $month, 1)->daysInMonth);
 
         return Carbon::create($year, $month, $day)->startOfDay();
@@ -195,6 +202,7 @@ class LeaveAllowanceService
         ?Leave $ignoredLeave
     ): float {
         $allowance = $this->allowanceForWindowStart($user, $settings, $allowanceYearStart);
+        // Include pending leave as reserved allowance so overlapping requests cannot overspend entitlement.
         $usedDaysQuery = $user->leaves()
             ->whereIn('status', $reservedStatuses)
             ->where('end_date', '>=', $allowanceYearStart->toDateString())
@@ -219,6 +227,7 @@ class LeaveAllowanceService
     {
         $currentAllowanceYearStart = $this->allowanceYearStart($settings, Carbon::now());
 
+        // Current year balances may have been manually adjusted, so use the stored value for that window.
         if ($currentAllowanceYearStart && $date->isSameDay($currentAllowanceYearStart)) {
             return (float) $user->leave_allowance;
         }
