@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Services\LeaveAllowanceService;
@@ -18,7 +19,7 @@ use App\Services\LeaveAllowanceService;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -41,7 +42,7 @@ class User extends Authenticatable
     {
         do {
             $colour = sprintf('#%06X', random_int(0, 0xFFFFFF));
-        } while (static::where('colour', $colour)->exists());
+        } while (static::withTrashed()->where('colour', $colour)->exists());
 
         return $colour;
     }
