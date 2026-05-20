@@ -6,7 +6,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
             <div class="p-4 sm:p-8 bg-[--color-card] shadow rounded-lg">
                 <div class="w-full">
