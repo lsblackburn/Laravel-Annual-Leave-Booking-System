@@ -42,7 +42,7 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class, 'email')->ignore($user?->id),
+                Rule::unique(User::class, 'email')->ignore($user?->id)->withoutTrashed(),
             ],
 
             'employment_start_date' => $employmentStartDateRules,

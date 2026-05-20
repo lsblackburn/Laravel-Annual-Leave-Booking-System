@@ -60,6 +60,35 @@ class RegistrationTest extends TestCase
         $response->assertRedirect(route('admin.users', absolute: false));
     }
 
+    public function test_admin_can_reuse_email_from_soft_deleted_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $deletedUser = User::factory()->create(['email' => 'replacement@example.com']);
+
+        $deletedUser->delete();
+
+        $response = $this
+            ->actingAs($admin)
+            ->post('/admin/users/register', [
+                'name' => 'Replacement User',
+                'email' => 'replacement@example.com',
+                'password' => 'password',
+                'password_confirmation' => 'password',
+                'employment_start_date' => now()->subYear()->format('d-m-Y'),
+            ]);
+
+        $response->assertRedirect(route('admin.users', absolute: false));
+
+        $this->assertSame(
+            1,
+            User::where('email', 'replacement@example.com')->count()
+        );
+        $this->assertStringStartsWith(
+            'deleted-user-'.$deletedUser->id.'-',
+            User::withTrashed()->find($deletedUser->id)->email
+        );
+    }
+
     public function test_admin_can_create_new_user_with_iso_employment_start_date_and_colour(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

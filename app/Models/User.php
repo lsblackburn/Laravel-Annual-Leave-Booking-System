@@ -36,6 +36,17 @@ class User extends Authenticatable
                 $user->leave_allowance = $user->calculateLeaveAllowance();
             } // On employment start date creation or update, sync leave allowance with rules
         });
+
+        static::deleting(function (User $user): void {
+            if ($user->isForceDeleting() || $user->deleted_at !== null) {
+                return;
+            }
+
+            $user->forceFill([
+                'email' => $user->deletedEmailPlaceholder(),
+                'email_verified_at' => null,
+            ])->saveQuietly();
+        });
     }
 
     public static function generateUniqueColour(): string
@@ -115,6 +126,13 @@ class User extends Authenticatable
     private function leaveDaysUsedForStatus(string $status): float
     {
         return app(LeaveAllowanceService::class)->leaveDaysUsedForStatus($this, $status);
+    }
+
+    private function deletedEmailPlaceholder(): string
+    {
+        $hash = substr(hash('sha256', $this->email.'|'.$this->id.'|'.microtime(true)), 0, 16);
+
+        return "deleted-user-{$this->id}-{$hash}@deleted.local";
     }
 
 }
