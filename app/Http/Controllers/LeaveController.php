@@ -75,6 +75,7 @@ class LeaveController extends Controller
 
         $leave = Leave::create($validated);
 
+        // Send in-app notifications immediately and queue email delivery through a separate notification class.
         User::query()
             ->where('role', 'admin')
             ->get()
@@ -143,6 +144,7 @@ class LeaveController extends Controller
 
         if ($request->input('response') === 'approved') {
             try {
+                // Re-check approval using approved leave only; pending requests should not block the request being approved.
                 $this->leaveAllowance->ensureLeaveRequestFitsAllowance(
                     $leaveRequest->user,
                     $this->leaveAllowance->leaveRequestData($leaveRequest),
@@ -154,6 +156,7 @@ class LeaveController extends Controller
             }
 
             try {
+                // Department coverage can change while a request is pending, so validate again at approval time.
                 $this->departmentAvailability->ensureDepartmentHasCoverage(
                     $leaveRequest->user,
                     $this->leaveAllowance->leaveRequestData($leaveRequest),
@@ -168,6 +171,7 @@ class LeaveController extends Controller
         $leaveRequest->manager_comment = $validated['manager_comment'] ?? null;
         $leaveRequest->status = $request->input('response');
         $leaveRequest->save();
+        // Keep the database notification synchronous, but send the email variant through the queue.
         $leaveRequest->user->notify(new LeaveRequestResponded($leaveRequest));
         $leaveRequest->user->notify(new LeaveRequestRespondedEmail($leaveRequest));
 
