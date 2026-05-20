@@ -10,7 +10,7 @@ class UserDepartmentController extends Controller
     public function create_company_departments(Request $request)
     {
         $validated = $request->validate([
-            'department' => 'required|string|max:255',
+            'department' => 'required|string|max:255|unique:user_departments',
         ]);
 
         UserDepartment::create($validated); 
