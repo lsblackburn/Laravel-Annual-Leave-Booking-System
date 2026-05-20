@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Leave;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -174,7 +175,7 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
@@ -192,13 +193,20 @@ class ProfileTest extends TestCase
             ->assertSessionHasErrorsIn('userDeletion', 'password')
             ->assertRedirect('/profile');
 
-        $this->assertNotNull($user->fresh());
+        $this->assertNotSoftDeleted('users', ['id' => $user->id]);
     }
 
     public function test_admin_can_delete_another_user(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
+        $leave = Leave::create([
+            'user_id' => $user->id,
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-06-01',
+            'reason' => 'Annual leave',
+            'is_half_day' => false,
+        ]);
 
         $this->actingAs($admin)
             ->delete(route('admin.users.delete', $user), [
@@ -207,7 +215,11 @@ class ProfileTest extends TestCase
             ->assertRedirect(route('admin.users'));
 
         $this->assertAuthenticatedAs($admin);
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+        $this->assertDatabaseHas('leaves', [
+            'id' => $leave->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     public function test_admin_cannot_delete_themselves_through_admin_route(): void
@@ -221,6 +233,6 @@ class ProfileTest extends TestCase
             ->assertRedirect(route('admin.users'))
             ->assertSessionHas('error', 'You cannot delete yourself through the Admin panel.');
 
-        $this->assertNotNull($admin->fresh());
+        $this->assertNotSoftDeleted('users', ['id' => $admin->id]);
     }
 }
