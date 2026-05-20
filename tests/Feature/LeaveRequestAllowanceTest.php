@@ -561,6 +561,27 @@ class LeaveRequestAllowanceTest extends TestCase
         $this->assertSame('pending', $secondPendingLeave->refresh()->status);
     }
 
+    public function test_admin_can_reject_leave_for_soft_deleted_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 2]);
+        $leave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+
+        $user->delete();
+
+        $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $leave), [
+                'response' => 'rejected',
+                'manager_comment' => 'Audit cleanup',
+            ])
+            ->assertRedirect(route('admin.leave-requests'));
+
+        $leave->refresh();
+
+        $this->assertSame('rejected', $leave->status);
+        $this->assertSame('Audit cleanup', $leave->manager_comment);
+    }
+
     public function test_user_cannot_create_leave_when_it_would_leave_department_uncovered(): void
     {
         $department = UserDepartment::create(['department' => 'Finance']);

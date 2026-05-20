@@ -131,6 +131,27 @@ class LeaveCalendarEventsTest extends TestCase
         $response->assertJsonFragment(['start' => '2026-04-13']);
     }
 
+    public function test_calendar_events_include_leave_for_soft_deleted_users(): void
+    {
+        $viewer = User::factory()->create();
+        $employee = User::factory()->create([
+            'name' => 'Former Employee',
+            'colour' => '#123456',
+        ]);
+
+        $this->createLeave($employee, '2026-04-10', '2026-04-10');
+        $employee->delete();
+
+        $response = $this->actingAs($viewer)->getJson(route('leave-requests.calendar-events'));
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'title' => 'Former Employee - Annual Leave',
+            'start' => '2026-04-10',
+            'backgroundColor' => '#123456',
+        ]);
+    }
+
     private function createLeave(User $user, string $startDate, string $endDate, string $status = 'approved'): Leave
     {
         $leave = Leave::create([
