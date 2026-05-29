@@ -70,6 +70,7 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
+        $this->ensureUserHasNoOverlappingLeave(Auth::user(), $validated);
         $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated);
         $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated);
 
@@ -114,6 +115,7 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
+        $this->ensureUserHasNoOverlappingLeave(Auth::user(), $validated, $leaveRequest);
         $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated, $leaveRequest);
         $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated, $leaveRequest);
 
@@ -269,6 +271,26 @@ class LeaveController extends Controller
                 }
             },
         ];
+    }
+
+    private function ensureUserHasNoOverlappingLeave(User $user, array $leaveRequest, ?Leave $ignoredLeave = null): void
+    {
+        $overlappingLeaveQuery = $user->leaves()
+            ->whereIn('status', ['approved', 'pending'])
+            ->where('start_date', '<=', $leaveRequest['end_date'])
+            ->where('end_date', '>=', $leaveRequest['start_date']);
+
+        if ($ignoredLeave) {
+            $overlappingLeaveQuery->where('id', '!=', $ignoredLeave->id);
+        }
+
+        if (! $overlappingLeaveQuery->exists()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'start_date' => 'You already have pending or approved leave covering this date range.',
+        ]);
     }
 
     public function delete(Leave $leave)
