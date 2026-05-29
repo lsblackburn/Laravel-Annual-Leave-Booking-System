@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
@@ -71,11 +72,15 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
-        $this->ensureUserHasNoOverlappingLeave(Auth::user(), $validated);
-        $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated);
-        $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated);
+        $leave = DB::transaction(function () use ($validated): Leave {
+            $user = $this->lockedUser((int) Auth::id());
 
-        $leave = Leave::create($validated);
+            $this->ensureUserHasNoOverlappingLeave($user, $validated);
+            $this->leaveAllowance->ensureLeaveRequestFitsAllowance($user, $validated);
+            $this->departmentAvailability->ensureDepartmentHasCoverage($user, $validated);
+
+            return Leave::create($validated);
+        });
 
         // Send in-app notifications immediately and queue email delivery through a separate notification class.
         User::query()
@@ -116,11 +121,19 @@ class LeaveController extends Controller
             return redirect()->route('leave.view')->with('error', 'A half day must have the start date equal to the end date');
         }
 
-        $this->ensureUserHasNoOverlappingLeave(Auth::user(), $validated, $leaveRequest);
-        $this->leaveAllowance->ensureLeaveRequestFitsAllowance(Auth::user(), $validated, $leaveRequest);
-        $this->departmentAvailability->ensureDepartmentHasCoverage(Auth::user(), $validated, $leaveRequest);
+        DB::transaction(function () use ($validated, $leaveRequest): void {
+            $user = $this->lockedUser((int) Auth::id());
+            $lockedLeaveRequest = Leave::query()
+                ->whereKey($leaveRequest->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $leaveRequest->update($validated);
+            $this->ensureUserHasNoOverlappingLeave($user, $validated, $lockedLeaveRequest);
+            $this->leaveAllowance->ensureLeaveRequestFitsAllowance($user, $validated, $lockedLeaveRequest);
+            $this->departmentAvailability->ensureDepartmentHasCoverage($user, $validated, $lockedLeaveRequest);
+
+            $lockedLeaveRequest->update($validated);
+        });
 
         return redirect()->route('leave.view')->with('success', 'Leave request updated successfully.');
     }
@@ -145,50 +158,85 @@ class LeaveController extends Controller
             return redirect()->route('admin.leave-requests')->with('error', 'This leave request has already been processed.');
         }
 
-        if ($request->input('response') === 'approved') {
-            try {
-                $this->ensureUserHasNoOverlappingLeave(
-                    $leaveRequest->user,
-                    $this->leaveAllowance->leaveRequestData($leaveRequest),
-                    $leaveRequest
-                );
-            } catch (ValidationException) {
-                return redirect()->route('admin.leave-requests')->with('error', 'This leave request overlaps another pending or approved leave request.');
+        $responseAction = $request->input('response');
+
+        $result = DB::transaction(function () use ($leaveRequest, $validated, $responseAction): array {
+            $user = $this->lockedUser((int) $leaveRequest->user_id);
+            $lockedLeaveRequest = Leave::with('user')
+                ->whereKey($leaveRequest->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedLeaveRequest->status !== 'pending') {
+                return ['error' => 'processed', 'leave' => $lockedLeaveRequest];
             }
 
-            try {
-                // Re-check approval using approved leave only; pending requests should not block the request being approved.
-                $this->leaveAllowance->ensureLeaveRequestFitsAllowance(
-                    $leaveRequest->user,
-                    $this->leaveAllowance->leaveRequestData($leaveRequest),
-                    $leaveRequest,
-                    ['approved']
-                );
-            } catch (ValidationException) {
-                return redirect()->route('admin.leave-requests')->with('error', 'This leave request would exceed the employee\'s remaining allowance.');
+            if ($responseAction === 'approved') {
+                try {
+                    $this->ensureUserHasNoOverlappingLeave(
+                        $user,
+                        $this->leaveAllowance->leaveRequestData($lockedLeaveRequest),
+                        $lockedLeaveRequest
+                    );
+                } catch (ValidationException) {
+                    return ['error' => 'overlap', 'leave' => $lockedLeaveRequest];
+                }
+
+                try {
+                    // Re-check approval using approved leave only; pending requests should not block the request being approved.
+                    $this->leaveAllowance->ensureLeaveRequestFitsAllowance(
+                        $user,
+                        $this->leaveAllowance->leaveRequestData($lockedLeaveRequest),
+                        $lockedLeaveRequest,
+                        ['approved']
+                    );
+                } catch (ValidationException) {
+                    return ['error' => 'allowance', 'leave' => $lockedLeaveRequest];
+                }
+
+                try {
+                    // Department coverage can change while a request is pending, so validate again at approval time.
+                    $this->departmentAvailability->ensureDepartmentHasCoverage(
+                        $user,
+                        $this->leaveAllowance->leaveRequestData($lockedLeaveRequest),
+                        $lockedLeaveRequest,
+                        ['approved']
+                    );
+                } catch (ValidationException) {
+                    return ['error' => 'coverage', 'leave' => $lockedLeaveRequest];
+                }
             }
 
-            try {
-                // Department coverage can change while a request is pending, so validate again at approval time.
-                $this->departmentAvailability->ensureDepartmentHasCoverage(
-                    $leaveRequest->user,
-                    $this->leaveAllowance->leaveRequestData($leaveRequest),
-                    $leaveRequest,
-                    ['approved']
-                );
-            } catch (ValidationException) {
-                return redirect()->route('admin.leave-requests')->with('error', 'This leave request would leave the employee\'s department without cover.');
-            }
+            $lockedLeaveRequest->manager_comment = $validated['manager_comment'] ?? null;
+            $lockedLeaveRequest->status = $responseAction;
+            $lockedLeaveRequest->save();
+
+            return ['error' => null, 'leave' => $lockedLeaveRequest->fresh('user')];
+        });
+
+        if ($result['error'] === 'processed') {
+            return redirect()->route('admin.leave-requests')->with('error', 'This leave request has already been processed.');
         }
 
-        $leaveRequest->manager_comment = $validated['manager_comment'] ?? null;
-        $leaveRequest->status = $request->input('response');
-        $leaveRequest->save();
+        if ($result['error'] === 'overlap') {
+            return redirect()->route('admin.leave-requests')->with('error', 'This leave request overlaps another pending or approved leave request.');
+        }
+
+        if ($result['error'] === 'allowance') {
+            return redirect()->route('admin.leave-requests')->with('error', 'This leave request would exceed the employee\'s remaining allowance.');
+        }
+
+        if ($result['error'] === 'coverage') {
+            return redirect()->route('admin.leave-requests')->with('error', 'This leave request would leave the employee\'s department without cover.');
+        }
+
+        $leaveRequest = $result['leave'];
+
         // Keep the database notification synchronous, but send the email variant through the queue.
         $leaveRequest->user->notify(new LeaveRequestResponded($leaveRequest));
         $leaveRequest->user->notify(new LeaveRequestRespondedEmail($leaveRequest));
 
-        return redirect()->route('admin.leave-requests')->with('success', "Leave request {$request->input('response')} successfully.");
+        return redirect()->route('admin.leave-requests')->with('success', "Leave request {$responseAction} successfully.");
     }
 
     public function calendarEvents(Request $request): JsonResponse
@@ -334,6 +382,14 @@ class LeaveController extends Controller
             ->map(fn (Carbon $date) => $date->toDateString())
             ->values()
             ->all();
+    }
+
+    private function lockedUser(int $userId): User
+    {
+        return User::withTrashed()
+            ->whereKey($userId)
+            ->lockForUpdate()
+            ->firstOrFail();
     }
 
     public function delete(Leave $leave)
