@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
@@ -275,6 +276,8 @@ class LeaveController extends Controller
 
     private function ensureUserHasNoOverlappingLeave(User $user, array $leaveRequest, ?Leave $ignoredLeave = null): void
     {
+        $requestedWorkingDates = $this->workingDatesCoveredByLeaveRequest($leaveRequest);
+
         $overlappingLeaveQuery = $user->leaves()
             ->whereIn('status', ['approved', 'pending'])
             ->where('start_date', '<=', $leaveRequest['end_date'])
@@ -284,13 +287,43 @@ class LeaveController extends Controller
             $overlappingLeaveQuery->where('id', '!=', $ignoredLeave->id);
         }
 
-        if (! $overlappingLeaveQuery->exists()) {
+        $hasWorkingDateOverlap = $overlappingLeaveQuery
+            ->get()
+            ->contains(function (Leave $leave) use ($requestedWorkingDates): bool {
+                return ! empty(array_intersect(
+                    $requestedWorkingDates,
+                    $this->workingDatesCoveredByLeaveRequest($this->leaveAllowance->leaveRequestData($leave))
+                ));
+            });
+
+        if (! $hasWorkingDateOverlap) {
             return;
         }
 
         throw ValidationException::withMessages([
             'start_date' => 'You already have pending or approved leave covering this date range.',
         ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function workingDatesCoveredByLeaveRequest(array $leaveRequest): array
+    {
+        $startDate = Carbon::parse($leaveRequest['start_date'])->startOfDay();
+        $endDate = Carbon::parse($leaveRequest['end_date'])->startOfDay();
+
+        if ($leaveRequest['is_half_day']) {
+            return $this->leaveAllowance->isWorkingDate($startDate)
+                ? [$startDate->toDateString()]
+                : [];
+        }
+
+        return collect(CarbonPeriod::create($startDate, $endDate))
+            ->filter(fn (Carbon $date) => $this->leaveAllowance->isWorkingDate($date))
+            ->map(fn (Carbon $date) => $date->toDateString())
+            ->values()
+            ->all();
     }
 
     public function delete(Leave $leave)

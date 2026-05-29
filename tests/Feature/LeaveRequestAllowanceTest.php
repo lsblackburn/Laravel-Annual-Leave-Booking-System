@@ -473,6 +473,61 @@ class LeaveRequestAllowanceTest extends TestCase
         $this->assertSame(1, Leave::where('user_id', $user->id)->where('start_date', '2026-02-10')->count());
     }
 
+    public function test_user_can_create_request_when_existing_range_only_overlaps_on_inactive_work_day(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-15');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '15-02-2026',
+                'end_date' => '16-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-15',
+            'end_date' => '2026-02-16',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_user_cannot_create_request_when_existing_range_overlaps_on_working_day(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-16');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '15-02-2026',
+                'end_date' => '16-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('start_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-15',
+            'end_date' => '2026-02-16',
+        ]);
+    }
+
     public function test_user_cannot_update_pending_leave_to_overlap_existing_pending_leave(): void
     {
         $user = User::factory()->create(['leave_allowance' => 20]);
