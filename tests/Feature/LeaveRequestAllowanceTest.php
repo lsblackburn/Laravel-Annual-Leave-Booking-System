@@ -664,6 +664,48 @@ class LeaveRequestAllowanceTest extends TestCase
         $this->assertSame('pending', $secondPendingLeave->refresh()->status);
     }
 
+    public function test_admin_cannot_approve_pending_leave_that_overlaps_existing_pending_leave(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $firstPendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+        $secondPendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $secondPendingLeave), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('error', 'This leave request overlaps another pending or approved leave request.');
+
+        $this->assertSame('pending', $firstPendingLeave->refresh()->status);
+        $this->assertSame('pending', $secondPendingLeave->refresh()->status);
+    }
+
+    public function test_admin_can_approve_pending_leave_when_raw_overlap_is_only_inactive_work_day(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-15');
+        $leaveToApprove = $this->createPendingLeave($user, '2026-02-15', '2026-02-16');
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $leaveToApprove), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('success', 'Leave request approved successfully.');
+
+        $this->assertSame('approved', $leaveToApprove->refresh()->status);
+    }
+
     public function test_admin_can_reject_leave_for_soft_deleted_user(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

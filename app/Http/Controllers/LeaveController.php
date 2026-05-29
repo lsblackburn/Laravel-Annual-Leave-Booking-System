@@ -147,6 +147,16 @@ class LeaveController extends Controller
 
         if ($request->input('response') === 'approved') {
             try {
+                $this->ensureUserHasNoOverlappingLeave(
+                    $leaveRequest->user,
+                    $this->leaveAllowance->leaveRequestData($leaveRequest),
+                    $leaveRequest
+                );
+            } catch (ValidationException) {
+                return redirect()->route('admin.leave-requests')->with('error', 'This leave request overlaps another pending or approved leave request.');
+            }
+
+            try {
                 // Re-check approval using approved leave only; pending requests should not block the request being approved.
                 $this->leaveAllowance->ensureLeaveRequestFitsAllowance(
                     $leaveRequest->user,
