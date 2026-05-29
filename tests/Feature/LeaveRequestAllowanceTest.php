@@ -451,6 +451,109 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_create_overlapping_pending_leave_request(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('start_date');
+
+        $this->assertSame(1, Leave::where('user_id', $user->id)->where('start_date', '2026-02-10')->count());
+    }
+
+    public function test_user_can_create_request_when_existing_range_only_overlaps_on_inactive_work_day(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-15');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '15-02-2026',
+                'end_date' => '16-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.view'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-15',
+            'end_date' => '2026-02-16',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_user_cannot_create_request_when_existing_range_overlaps_on_working_day(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-16');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '15-02-2026',
+                'end_date' => '16-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('start_date');
+
+        $this->assertDatabaseMissing('leaves', [
+            'user_id' => $user->id,
+            'start_date' => '2026-02-15',
+            'end_date' => '2026-02-16',
+        ]);
+    }
+
+    public function test_user_cannot_update_pending_leave_to_overlap_existing_pending_leave(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+        $leaveToUpdate = $this->createPendingLeave($user, '2026-02-12', '2026-02-12');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.edit', $leaveToUpdate))
+            ->put(route('leave.update', $leaveToUpdate), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.edit', $leaveToUpdate))
+            ->assertSessionHasErrors('start_date');
+
+        $leaveToUpdate->refresh();
+
+        $this->assertSame('2026-02-12', $leaveToUpdate->start_date);
+        $this->assertSame('2026-02-12', $leaveToUpdate->end_date);
+    }
+
     public function test_deleting_pending_leave_releases_reserved_allowance(): void
     {
         $user = User::factory()->create(['leave_allowance' => 2]);
@@ -559,6 +662,48 @@ class LeaveRequestAllowanceTest extends TestCase
             ->assertSessionHas('error', 'This leave request would exceed the employee\'s remaining allowance.');
 
         $this->assertSame('pending', $secondPendingLeave->refresh()->status);
+    }
+
+    public function test_admin_cannot_approve_pending_leave_that_overlaps_existing_pending_leave(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $firstPendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+        $secondPendingLeave = $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $secondPendingLeave), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('error', 'This leave request overlaps another pending or approved leave request.');
+
+        $this->assertSame('pending', $firstPendingLeave->refresh()->status);
+        $this->assertSame('pending', $secondPendingLeave->refresh()->status);
+    }
+
+    public function test_admin_can_approve_pending_leave_when_raw_overlap_is_only_inactive_work_day(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        WorkDay::whereIn('day', ['Saturday', 'Sunday'])->update(['active' => false]);
+        $this->createPendingLeave($user, '2026-02-13', '2026-02-15');
+        $leaveToApprove = $this->createPendingLeave($user, '2026-02-15', '2026-02-16');
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.leave-requests.response', $leaveToApprove), [
+                'response' => 'approved',
+            ]);
+
+        $response
+            ->assertRedirect(route('admin.leave-requests'))
+            ->assertSessionHas('success', 'Leave request approved successfully.');
+
+        $this->assertSame('approved', $leaveToApprove->refresh()->status);
     }
 
     public function test_admin_can_reject_leave_for_soft_deleted_user(): void
