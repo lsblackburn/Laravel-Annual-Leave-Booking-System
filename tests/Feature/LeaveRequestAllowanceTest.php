@@ -451,6 +451,54 @@ class LeaveRequestAllowanceTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_create_overlapping_pending_leave_request(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.form'))
+            ->post(route('leave.create'), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.form'))
+            ->assertSessionHasErrors('start_date');
+
+        $this->assertSame(1, Leave::where('user_id', $user->id)->where('start_date', '2026-02-10')->count());
+    }
+
+    public function test_user_cannot_update_pending_leave_to_overlap_existing_pending_leave(): void
+    {
+        $user = User::factory()->create(['leave_allowance' => 20]);
+        $this->setCalendarYearRefresh();
+        $this->createPendingLeave($user, '2026-02-10', '2026-02-10');
+        $leaveToUpdate = $this->createPendingLeave($user, '2026-02-12', '2026-02-12');
+
+        $response = $this->actingAs($user)
+            ->from(route('leave.edit', $leaveToUpdate))
+            ->put(route('leave.update', $leaveToUpdate), [
+                'start_date' => '10-02-2026',
+                'end_date' => '10-02-2026',
+                'is_half_day' => '0',
+                'reason' => 'Annual leave',
+            ]);
+
+        $response
+            ->assertRedirect(route('leave.edit', $leaveToUpdate))
+            ->assertSessionHasErrors('start_date');
+
+        $leaveToUpdate->refresh();
+
+        $this->assertSame('2026-02-12', $leaveToUpdate->start_date);
+        $this->assertSame('2026-02-12', $leaveToUpdate->end_date);
+    }
+
     public function test_deleting_pending_leave_releases_reserved_allowance(): void
     {
         $user = User::factory()->create(['leave_allowance' => 2]);
