@@ -76,10 +76,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!calendarEl) return;
 
+    const dashboardVisibleRange = function (currentDate) {
+        const start = new Date(currentDate);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+
+        const end = new Date(start);
+        end.setDate(start.getDate() + 28);
+
+        return { start, end };
+    };
+
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin],
 
-        initialView: 'dayGridWeek',
+        initialView: 'dayGrid',
+        visibleRange: dashboardVisibleRange,
         height: 'auto',
         headerToolbar: false,
         firstDay: 1,
